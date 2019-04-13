@@ -4,4 +4,8 @@
     <dimen name="size_preview">100dp</dimen>
     <dimen name="stdMargin">8dp</dimen>
     <dimen name="size_progress">48dp</dimen>
+    <dimen name="size_card">100dp</dimen>
+    <dimen name="height_list">92dp</dimen>
+    <dimen name="height_shadow">30dp</dimen>
+    <item name="shadow" type="dimen" format="float">0.5</item>
 </resources>

@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +15,8 @@ import java.util.Locale;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -27,6 +28,7 @@ import io.reactivex.schedulers.Schedulers;
 import root.iv.neuro.R;
 import root.iv.neuro.app.App;
 import root.iv.neuro.ui.SimpleCanvas;
+import root.iv.neuro.ui.adapter.NumberAdapter;
 import root.iv.neuro.util.BitmapConverter;
 import root.iv.neuronet.Number;
 import root.iv.neuronet.Perceptron;
@@ -35,13 +37,13 @@ public class NeuroFragment extends Fragment {
     private static final int SIZE_PREVIEW = 5;
     @BindView(R.id.canvas)
     protected SimpleCanvas simpleCanvas;
-    @BindView(R.id.preview)
-    protected ImageView imagePreview;
     @BindView(R.id.viewCurrentPattern)
     protected TextView viewCurrentPattern;
     @BindView(R.id.progress)
     protected ProgressBar progressBar;
-    private Number[] pattern;
+    @BindView(R.id.listNumbers)
+    RecyclerView listNumbers;
+    private NumberAdapter numberAdapter;
     private int currentPattern = -1;
     private Perceptron perceptron = new Perceptron(SIZE_PREVIEW*SIZE_PREVIEW);
     private CompositeDisposable disposable;
@@ -52,15 +54,13 @@ public class NeuroFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_neuronet, container, false);
         ButterKnife.bind(this, view);
 
-        imagePreview.setOnClickListener(v -> {
-            Bitmap scaled = getPreview();
-            imagePreview.setImageBitmap(scaled);
-            Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "%d %d", scaled.getWidth(), scaled.getHeight()), Toast.LENGTH_SHORT).show();
-        });
-
-        pattern = new Number[2];
-        updateCurrentPattern();
         disposable = new CompositeDisposable();
+
+        numberAdapter = new NumberAdapter(getLayoutInflater());
+        listNumbers.setAdapter(numberAdapter);
+        listNumbers.setLayoutManager(new LinearLayoutManager(this.getContext(), RecyclerView.HORIZONTAL, false));
+        updateCurrentPattern();
+
         return view;
     }
 
@@ -80,9 +80,8 @@ public class NeuroFragment extends Fragment {
     @OnClick(R.id.buttonAddPattern)
     public void clickAppendPattern() {
         Bitmap scaled = getPreview();
-        pattern[currentPattern] = BitmapConverter.createNumber(scaled, currentPattern);
+        numberAdapter.append(BitmapConverter.createNumber(scaled, currentPattern), scaled);
         updateCurrentPattern();
-        imagePreview.setImageBitmap(scaled);
         Toast.makeText(this.getContext(), "Шаблонов: " + currentPattern, Toast.LENGTH_SHORT).show();
     }
 
@@ -90,15 +89,16 @@ public class NeuroFragment extends Fragment {
     public void clickTrain() {
         // Запуск обучения
         progressBar.setVisibility(View.VISIBLE);
+        final Number target = numberAdapter.getItem(0);
         Disposable d = Completable.fromCallable(() -> {
-            perceptron.traning5(pattern, pattern[0], 10000);
+            perceptron.traning5(numberAdapter.getNumbers().toArray(new Number[0]), target, 10000);
             return true;
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         () -> {
-                            Toast.makeText(this.getContext(), "Обучение " + pattern[0].getValue() + " Закончено", Toast.LENGTH_SHORT).show() ;
+                            Toast.makeText(this.getContext(), "Обучение " + target.getValue() + " Закончено", Toast.LENGTH_SHORT).show() ;
                             progressBar.setVisibility(View.GONE);
                         },
                         (error) -> App.logE(error.getMessage())
@@ -122,7 +122,7 @@ public class NeuroFragment extends Fragment {
     }
 
     private void updateCurrentPattern() {
-        if (++currentPattern == pattern.length) {
+        if (++currentPattern == numberAdapter.getItemCount()) {
             currentPattern = 0;
         }
 

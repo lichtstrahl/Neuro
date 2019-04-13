@@ -1,76 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
-        android:id="@+id/viewCurrentPattern"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_margin="@dimen/stdMargin"/>
-
-    <root.iv.neuro.ui.SimpleCanvas
-        android:id="@+id/canvas"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/height_canvas"
-        android:layout_margin="50dp"
-        android:layout_below="@id/viewCurrentPattern"/>
-
-    <ImageView
-        android:id="@+id/preview"
-        android:layout_width="@dimen/size_preview"
-        android:layout_height="@dimen/size_preview"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="@dimen/stdMargin"
-        android:scaleType="centerCrop"/>
-
-    <ProgressBar
-        android:id="@+id/progress"
-        android:layout_width="@dimen/size_progress"
-        android:layout_height="@dimen/size_progress"
-        android:layout_margin="@dimen/stdMargin"
-        android:layout_below="@id/blockButton"
-        android:layout_centerHorizontal="true"
-        android:visibility="gone"
-        />
-
-    <LinearLayout
-        android:id="@+id/blockButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/canvas"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/buttonClear"
+        <TextView
+            android:id="@+id/viewCurrentPattern"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/clear"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="@dimen/stdMargin"
+            android:textSize="20sp"/>
+
+        <root.iv.neuro.ui.SimpleCanvas
+            android:id="@+id/canvas"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_canvas"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
+            android:layout_below="@id/viewCurrentPattern"/>
+
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="@dimen/size_progress"
+            android:layout_height="@dimen/size_progress"
+            android:layout_margin="@dimen/stdMargin"
+            android:layout_alignTop="@id/canvas"
+            android:layout_alignEnd="@id/canvas"
+            android:layout_alignStart="@id/canvas"
+            android:layout_alignBottom="@id/canvas"
+            android:visibility="gone"
             />
 
-        <Button
-            android:id="@+id/buttonAddPattern"
+        <LinearLayout
+            android:id="@+id/blockButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/append"/>
+            android:layout_below="@id/canvas"
+            android:layout_centerHorizontal="true"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/buttonClear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/clear"
+                />
 
-        <Button
-            android:id="@+id/buttonTrain"
-            android:layout_width="wrap_content"
+            <Button
+                android:id="@+id/buttonAddPattern"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/append"/>
+
+            <Button
+                android:id="@+id/buttonTrain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/train"/>
+
+            <Button
+                android:id="@+id/buttonCheck"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/check"/>
+
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listNumbers"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/train"/>
+            android:layout_below="@id/blockButton"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_number">
 
-        <Button
-            android:id="@+id/buttonCheck"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/check"/>
-
-
-    </LinearLayout>
-
-
+        </androidx.recyclerview.widget.RecyclerView>
 
 </RelativeLayout>
