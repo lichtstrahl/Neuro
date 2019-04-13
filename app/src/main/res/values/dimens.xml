@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="height_canvas">300dp</dimen>
+    <dimen name="size_preview">100dp</dimen>
+    <dimen name="stdMargin">8dp</dimen>
+</resources>
