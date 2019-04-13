@@ -3,4 +3,5 @@
     <dimen name="height_canvas">300dp</dimen>
     <dimen name="size_preview">100dp</dimen>
     <dimen name="stdMargin">8dp</dimen>
+    <dimen name="size_progress">48dp</dimen>
 </resources>

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,23 +19,32 @@ import androidx.fragment.app.Fragment;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.Completable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import root.iv.neuro.R;
+import root.iv.neuro.app.App;
 import root.iv.neuro.ui.SimpleCanvas;
 import root.iv.neuro.util.BitmapConverter;
 import root.iv.neuronet.Number;
 import root.iv.neuronet.Perceptron;
 
 public class NeuroFragment extends Fragment {
-    private static final int SIZE_PREVIEW = 6;
+    private static final int SIZE_PREVIEW = 5;
     @BindView(R.id.canvas)
     protected SimpleCanvas simpleCanvas;
     @BindView(R.id.preview)
     protected ImageView imagePreview;
     @BindView(R.id.viewCurrentPattern)
     protected TextView viewCurrentPattern;
+    @BindView(R.id.progress)
+    protected ProgressBar progressBar;
     private Number[] pattern;
     private int currentPattern = -1;
     private Perceptron perceptron = new Perceptron(SIZE_PREVIEW*SIZE_PREVIEW);
+    private CompositeDisposable disposable;
 
     @Nullable
     @Override
@@ -50,6 +60,7 @@ public class NeuroFragment extends Fragment {
 
         pattern = new Number[2];
         updateCurrentPattern();
+        disposable = new CompositeDisposable();
         return view;
     }
 
@@ -77,38 +88,41 @@ public class NeuroFragment extends Fragment {
 
     @OnClick(R.id.buttonTrain)
     public void clickTrain() {
+        // Запуск обучения
+        progressBar.setVisibility(View.VISIBLE);
+        Disposable d = Completable.fromCallable(() -> {
+            perceptron.traning5(pattern, pattern[0], 10000);
+            return true;
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        () -> {
+                            Toast.makeText(this.getContext(), "Обучение " + pattern[0].getValue() + " Закончено", Toast.LENGTH_SHORT).show() ;
+                            progressBar.setVisibility(View.GONE);
+                        },
+                        (error) -> App.logE(error.getMessage())
+                );
+
+        disposable.add(d);
+    }
+
+    @OnClick(R.id.buttonCheck)
+    public void clickCheck() {
         int target = 0;
         Bitmap scaled = getPreview();
         boolean answer = perceptron.check(BitmapConverter.createNumber(scaled, target));
         Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Проверка на %d - %b", target, answer), Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        disposable.dispose();
+    }
+
     private void updateCurrentPattern() {
         if (++currentPattern == pattern.length) {
-            // Запуск обучения
-
-            perceptron.traning5(pattern, pattern[0], 10000);
-            Toast.makeText(this.getContext(), "Обучение " + pattern[0].getValue() + " Закончено", Toast.LENGTH_SHORT).show();
-
-
-//            Completable.fromCallable(() -> {
-//                Perceptron perceptron = new Perceptron(pattern[0].getSize());
-//                perceptron.traning5(pattern, pattern[4], 50000, (str) -> {
-//                    App.logI(str);
-//                });
-//                return true;
-//            })
-//            .subscribeOn(Schedulers.io())
-//            .subscribeOn(AndroidSchedulers.mainThread())
-//            .subscribe(
-//                    () -> {
-//
-//                    },
-//                    (error) ->{
-//                        App.logE(error.getMessage());
-//                    }
-//            );
-
             currentPattern = 0;
         }
 
