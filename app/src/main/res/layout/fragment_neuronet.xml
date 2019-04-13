@@ -56,7 +56,8 @@
                 android:id="@+id/buttonTrain"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/train"/>
+                android:text="@string/train"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/buttonCheck"
@@ -76,7 +77,14 @@
             android:orientation="horizontal"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_number">
-
         </androidx.recyclerview.widget.RecyclerView>
+
+    <Button
+        android:id="@+id/buttonReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/listNumbers"
+        android:layout_centerHorizontal="true"
+        android:text="@string/reset"/>
 
 </RelativeLayout>

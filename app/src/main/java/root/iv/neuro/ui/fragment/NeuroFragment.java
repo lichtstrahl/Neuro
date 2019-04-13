@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +36,7 @@ import root.iv.neuronet.Perceptron;
 
 public class NeuroFragment extends Fragment {
     private static final int SIZE_PREVIEW = 5;
+    private static final int COUNT_NUMBERS = 5;
     @BindView(R.id.canvas)
     protected SimpleCanvas simpleCanvas;
     @BindView(R.id.viewCurrentPattern)
@@ -43,6 +45,8 @@ public class NeuroFragment extends Fragment {
     protected ProgressBar progressBar;
     @BindView(R.id.listNumbers)
     RecyclerView listNumbers;
+    @BindView(R.id.buttonTrain)
+    Button buttonTrain;
     private NumberAdapter numberAdapter;
     private int currentPattern = -1;
     private Perceptron perceptron = new Perceptron(SIZE_PREVIEW*SIZE_PREVIEW);
@@ -85,6 +89,13 @@ public class NeuroFragment extends Fragment {
         Toast.makeText(this.getContext(), "Шаблонов: " + currentPattern, Toast.LENGTH_SHORT).show();
     }
 
+    @OnClick(R.id.buttonReset)
+    public void clickButtonReset() {
+        currentPattern = -1;
+        updateCurrentPattern();
+        numberAdapter.clear();
+    }
+
     @OnClick(R.id.buttonTrain)
     public void clickTrain() {
         // Запуск обучения
@@ -105,6 +116,7 @@ public class NeuroFragment extends Fragment {
                 );
 
         disposable.add(d);
+        buttonTrain.setVisibility(View.GONE);
     }
 
     @OnClick(R.id.buttonCheck)
@@ -122,8 +134,9 @@ public class NeuroFragment extends Fragment {
     }
 
     private void updateCurrentPattern() {
-        if (++currentPattern == numberAdapter.getItemCount()) {
+        if (++currentPattern == COUNT_NUMBERS) {
             currentPattern = 0;
+            buttonTrain.setVisibility(View.VISIBLE);
         }
 
         viewCurrentPattern.setText(String.format(Locale.ENGLISH, "Нарисуйте %d", currentPattern));

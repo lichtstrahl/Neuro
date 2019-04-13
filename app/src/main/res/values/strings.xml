@@ -4,4 +4,5 @@
     <string name="append">append</string>
     <string name="train">Train</string>
     <string name="check">check</string>
+    <string name="reset">reset</string>
 </resources>

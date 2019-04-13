@@ -49,6 +49,13 @@ public class NumberAdapter extends RecyclerView.Adapter<NumberAdapter.ViewHolder
         notifyItemInserted(count);
     }
 
+    public void clear() {
+        int count = numberList.size();
+        numberList.clear();
+        bitmapList.clear();
+        notifyItemRangeRemoved(0, count);
+    }
+
     public int getValue(int index) {
         return numberList.get(index).getValue();
     }
