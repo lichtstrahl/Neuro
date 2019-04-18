@@ -74,7 +74,7 @@ public class NeuroFragment extends Fragment {
             target = listNumbers.getChildAdapterPosition(v);
             final Number number = numberAdapter.getItem(target);
             Disposable d = Completable.fromCallable(() -> {
-                perceptron.traning5(numberAdapter.getNumbers().toArray(new Number[0]), number, 2000);
+                perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), number);
                 return true;
             })
                     .subscribeOn(Schedulers.io())

@@ -21,6 +21,7 @@ public class Perceptron {
     // Активизировавшиеся А-элементы
     private boolean[] activeA;
     private Configuration config;
+    private int countEval;
 
     public Perceptron(Configuration config) {
         this.config = config;
@@ -44,6 +45,7 @@ public class Perceptron {
                 break;
         }
         initAR();
+        this.countEval = 0;
     }
 
     private void randomInitWeightSA() {
@@ -144,24 +146,32 @@ public class Perceptron {
         }
     }
 
+    private void changeWeights(int eval) {
+        if (eval < 0) decrease();
+        if (eval > 0) increase();
+        countEval++;
+    }
+
     //        Тренировка сети
-    public void traning5(Number[] pattern, Number target, int iterations) {
+    public void traning(Number[] pattern, Number target) {
         init(config.getWeightFillType());
-        for (int i = 0; i < iterations; i++) {
+        for (int i = 0;;i++) {
             // Генерируем случайное число от 0 до 9
             Number number = pattern[i % pattern.length];
 
             boolean answer = check(number);
             // На ложное число сеть сказала "ДА"
             if (number.getValue() != target.getValue() && answer) {
-                decrease();
+                changeWeights(-1);
             }
 
             // На нужное число сеть выдала "НЕТ"
             if (number.getValue() == target.getValue() && !answer) {
-                increase();
+                changeWeights(1);
             }
 
+            // Если без изменения весов произошло указанное количество итераций, то обучение заканчивается
+            if (i - countEval == pattern.length*10) break;
         }
     }
 
