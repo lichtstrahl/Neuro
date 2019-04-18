@@ -19,11 +19,14 @@ public class NumberAdapter extends RecyclerView.Adapter<NumberAdapter.ViewHolder
     private LayoutInflater inflater;
     private List<Number> numberList;
     private List<Bitmap> bitmapList;
+    private View.OnClickListener listener;
 
-    public NumberAdapter(LayoutInflater inflater) {
+
+    public NumberAdapter(LayoutInflater inflater, View.OnClickListener listener) {
         this.inflater = inflater;
         this.bitmapList = new LinkedList<>();
         this.numberList = new LinkedList<>();
+        this.listener = listener;
     }
 
     @NonNull
@@ -77,6 +80,7 @@ public class NumberAdapter extends RecyclerView.Adapter<NumberAdapter.ViewHolder
 
             preview = itemView.findViewById(R.id.preview);
             viewName = itemView.findViewById(R.id.name);
+            itemView.setOnClickListener(listener);
         }
 
         public void bind(int pos) {
