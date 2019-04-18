@@ -37,8 +37,7 @@ import root.iv.neuronet.perceptron.WeightFillType;
 
 
 public class NeuroFragment extends Fragment {
-    private static final int SIZE_PREVIEW = 8;
-    private static final int COUNT_NUMBERS = 5;
+    private static final int SIZE_PREVIEW = 10;
     private static final Configuration configuration = new Configuration(
             2,
             SIZE_PREVIEW*SIZE_PREVIEW/5,
@@ -74,7 +73,9 @@ public class NeuroFragment extends Fragment {
             target = listNumbers.getChildAdapterPosition(v);
             final Number number = numberAdapter.getItem(target);
             Disposable d = Completable.fromCallable(() -> {
-                perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), number);
+                StringBuilder logger = new StringBuilder();
+                perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), number, logger);
+                App.logI(logger.toString());
                 return true;
             })
                     .subscribeOn(Schedulers.io())
@@ -84,7 +85,7 @@ public class NeuroFragment extends Fragment {
                                 Toast.makeText(this.getContext(), "Обучение на распознавание " + number.getValue() + " Закончено", Toast.LENGTH_SHORT).show() ;
                                 progressBar.setVisibility(View.GONE);
                             },
-                            (error) -> App.logE(error.getMessage())
+                            error -> App.logE(error.getMessage())
                     );
 
             disposable.add(d);
@@ -104,13 +105,13 @@ public class NeuroFragment extends Fragment {
     }
 
     @OnClick(R.id.buttonClear)
-    public void clickButtonClear() {
+    void clickButtonClear() {
         simpleCanvas.clear();
         simpleCanvas.invalidate();
     }
 
     @OnClick(R.id.buttonAddPattern)
-    public void clickAppendPattern() {
+    void clickAppendPattern() {
         Bitmap scaled = getPreview();
         numberAdapter.append(BitmapConverter.createNumber(scaled, currentPattern), scaled);
         updateCurrentPattern();
@@ -118,14 +119,14 @@ public class NeuroFragment extends Fragment {
     }
 
     @OnClick(R.id.buttonReset)
-    public void clickButtonReset() {
+    void clickButtonReset() {
         currentPattern = -1;
         updateCurrentPattern();
         numberAdapter.clear();
     }
 
     @OnClick(R.id.buttonCheck)
-    public void clickCheck() {
+    void clickCheck() {
         int t = numberAdapter.getItem(target).getValue();
         Bitmap scaled = getPreview();
         boolean answer = perceptron.check(BitmapConverter.createNumber(scaled, t), App::logI);
