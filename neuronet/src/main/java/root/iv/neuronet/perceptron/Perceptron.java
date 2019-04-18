@@ -52,12 +52,11 @@ public class Perceptron {
         return count;
     }
 
-    public boolean check(Number number, Logger logger) {
-        int answer = checkSum(number);
-        logger.log(String.format(Locale.ENGLISH, "A: %d", countActivate()));
-        logger.log(String.format(Locale.ENGLISH, "Sum: %d", answer));
-        logger.log(" ");
-        return answer >= config.getBiasR();
+    public boolean check(Number number, StringBuilder log) {
+        int sum = checkSum(number);
+        log.append(String.format(Locale.ENGLISH, "All, A, Sum: %d, %d, %d\n", config.getCountA(), countActivate(), sum));
+
+        return sum >= config.getBiasR();
     }
 
 

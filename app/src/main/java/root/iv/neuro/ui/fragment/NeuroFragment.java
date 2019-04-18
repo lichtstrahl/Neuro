@@ -40,7 +40,7 @@ public class NeuroFragment extends Fragment {
     private static final int SIZE_PREVIEW = 10;
     private static final Configuration configuration = new Configuration(
             2,
-            SIZE_PREVIEW*SIZE_PREVIEW/5,
+            SIZE_PREVIEW*SIZE_PREVIEW*2/5,
             1,
             SIZE_PREVIEW*SIZE_PREVIEW*2,
             SIZE_PREVIEW*SIZE_PREVIEW,
@@ -129,7 +129,9 @@ public class NeuroFragment extends Fragment {
     void clickCheck() {
         int t = numberAdapter.getItem(target).getValue();
         Bitmap scaled = getPreview();
-        boolean answer = perceptron.check(BitmapConverter.createNumber(scaled, t), App::logI);
+        StringBuilder logger = new StringBuilder();
+        boolean answer = perceptron.check(BitmapConverter.createNumber(scaled, t), logger);
+        App.logI(logger.toString());
         Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Проверка на %d = %b", t, answer), Toast.LENGTH_SHORT).show();
     }
 
