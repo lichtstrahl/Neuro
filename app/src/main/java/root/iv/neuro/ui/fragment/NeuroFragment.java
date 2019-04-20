@@ -134,7 +134,7 @@ public class NeuroFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
         Disposable d = Completable.fromCallable(() -> {
             StringBuilder logger = new StringBuilder();
-            perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), logger);
+            perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), numberAdapter.getItemCount(), logger);
             App.logI(logger.toString());
             return true;
         })

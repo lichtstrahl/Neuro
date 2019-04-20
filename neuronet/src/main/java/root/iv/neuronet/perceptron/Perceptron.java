@@ -100,7 +100,8 @@ public class Perceptron {
     }
 
     //        Тренировка сети
-    public void traning(Number[] pattern, StringBuilder log) {
+    public void traning(Number[] pattern, int count, StringBuilder log) {
+        this.layerR = new Layer(count, config.getBiasR(), config.getCountA(), config.getFillTypeAR());
         layerA.reset();
         layerR.reset();
 

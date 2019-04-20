@@ -39,30 +39,31 @@
             android:layout_below="@id/canvas"
             android:layout_centerHorizontal="true"
             android:orientation="horizontal">
-            <Button
+            <ImageButton
                 android:id="@+id/buttonClear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/clear"
+                android:src="@drawable/ic_clean"
                 />
 
-            <Button
+            <ImageButton
                 android:id="@+id/buttonAddPattern"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/append"/>
+                android:src="@drawable/ic_add"/>
 
-            <Button
+            <ImageButton
                 android:id="@+id/buttonCheck"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/check"/>
+                android:src="@drawable/ic_eye"/>
 
-            <Button
+            <ImageButton
                 android:id="@+id/buttonTrain"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/train"/>
+                android:src="@drawable/ic_brain"
+                />
 
 
         </LinearLayout>

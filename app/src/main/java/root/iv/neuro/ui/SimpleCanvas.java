@@ -45,9 +45,9 @@ public class SimpleCanvas extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        clear(canvas);
         canvas.drawColor(getResources().getColor(android.R.color.white));
         canvas.drawPath(path, paint);
-        clear(canvas);
     }
 
     @Override
@@ -84,10 +84,11 @@ public class SimpleCanvas extends View {
     }
 
     public Path getPath() {
+        clear();
         return path;
     }
 
     public void setPath(Path path) {
-        this.path = path;
+        this.path = new Path(path);
     }
 }
