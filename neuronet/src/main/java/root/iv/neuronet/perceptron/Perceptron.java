@@ -1,10 +1,7 @@
 package root.iv.neuronet.perceptron;
 
 import java.util.Locale;
-import java.util.Random;
 
-import root.iv.neuronet.Logger;
-import root.iv.neuronet.MathUtils;
 import root.iv.neuronet.Number;
 
 /**
@@ -17,87 +14,142 @@ import root.iv.neuronet.Number;
 
 public class Perceptron {
     // Активизировавшиеся А-элементы
+    private Layer layerS;
     private Layer layerA;
+    private Layer layerR;
     private Configuration config;
     private int countEval;
 
     public Perceptron(Configuration config) {
         this.config = config;
-        this.layerA = new Layer(config.getCountA(), config.getBiasA(), config.getCountR(), config.getCountS(), config.getWeightFillType());
+        this.layerS = new Layer(config.getCountS(), 0, 0, config.getFillTypeSA());
+        this.layerA = new Layer(config.getCountA(), config.getBiasA(), config.getCountS(), config.getFillTypeSA());
+        this.layerR = new Layer(config.getCountR(), config.getBiasR(), config.getCountA(), config.getFillTypeAR());
+
         countEval = 0;
     }
 
-
-
-
     // Является ли полученное число тем, на которое обучается сеть
-    public int checkSum(Number number) {
-        layerA.release();
-        int sumR = 0;
+    private boolean check(Number number) {
+        layerS.release();           //  Все нейроны деактивируются
+        layerS.activate(number);    //  Активируются сенсора по конкретному изображению
+        layerA.release();           //  Все нейроны деактивируются
+        layerR.release();           //  Все нейроны деактивируются
+
+
         // Пробуем активировать A-слой
-        for (int a = 0; a < layerA.size(); a++) {
+        for (int a = 0; a < layerA.curentSize(); a++) {
             Neuron neuron = layerA.get(a);
-            neuron.activate(number);
-            sumR += neuron.signalToNext();
+            if (neuron != null) neuron.activate(layerS.getNeurons());
         }
 
-        return sumR;
-    }
 
-    private int countActivate() {
-        int count = 0;
-        for (int i = 0; i < layerA.size(); i++) {
-            if (layerA.isActive(i)) count++;
+        // Пробуем активировать R-слой
+        Integer lastActivated = null;
+        for (int r = 0; r < layerR.curentSize(); r++) {
+            Neuron neuron = layerR.get(r);
+            neuron.activate(layerA.getNeurons());
+            if (neuron.isActive()) lastActivated = r;
         }
-        return count;
+
+        // Сеть смогла определить число, если активировался лишь один нейрон и его номер совпадает с искомым номером
+        return layerR.countActivated() == 1 && lastActivated != null && lastActivated == number.getValue();
     }
 
-    public boolean check(Number number, StringBuilder log) {
-        int sum = checkSum(number);
-        log.append(String.format(Locale.ENGLISH, "All, A, Sum: %d, %d, %d\n", config.getCountA(), countActivate(), sum));
+    public int check(Number number, StringBuilder log) {
+        check(number);
+        log.append("Check\n");
+        Integer n = layerR.getActiveNeuron();
 
-        return sum >= config.getBiasR();
+        return (n != null) ? n : -1;
     }
 
+    /**
+     *
+     * @param errorType Тип произошедшей ошибки
+     * @param original Номер нейрона, который ДОЛЖЕН был активизироваться.
+     */
+    private void changeWeights(ErrorType errorType, int original) {
+        switch (errorType) {
+            case ALL_NOT_ACTIVED:   // + все активные
+                for (Neuron neuronR : layerR.getNeurons()) {
+                    for (int a = 0; a < layerA.curentSize(); a++) {
+                        if (layerA.isActive(a)) neuronR.inc(a);
+                    }
+                }
+                break;
 
-    public boolean check(Number number) {
-        return checkSum(number) >= config.getBiasR();
-    }
+            case INCORRECT_ACTIVED: // + активные, связанные с искомым
+                for (int a = 0; a < layerA.curentSize(); a++) {
+                    if (layerA.isActive(a))
+                        layerR.get(original).inc(a);
+                }
+                break;
 
-    private void changeWeights(int eval) {
-        if (eval < 0) layerA.dec();
-        if (eval > 0) layerA.inc();
+            case EXTRA_ACTIVED: // - все активные
+                for (int r = 0; r < layerR.curentSize(); r++) {
+                    if (!layerR.isActive(r) || r == original) continue;
+                    for (int a = 0; a < layerA.curentSize(); a++) {
+                        if (layerA.isActive(a)) layerR.get(r).dec(a);
+                    }
+                }
+                break;
+        }
+
         countEval++;
     }
 
     //        Тренировка сети
-    public void traning(Number[] pattern, Number target, StringBuilder log) {
+    public void traning(Number[] pattern, StringBuilder log) {
         layerA.reset();
+        layerR.reset();
 
-        for (int i = 0;;i++) {
+        // Установить связь точка к точке
+        for (int i = 0; i < this.layerA.curentSize(); i++)
+            layerA.get(i).inc(i);
+
+        int withoutError = 0;
+
+        for (int i = 0; withoutError < (pattern.length*5);i++) {
             // Генерируем случайное число от 0 до 9
-            Number number = pattern[i % pattern.length];
+            int index = i % pattern.length;
+            Number number = pattern[index];
 
+            // Пробуем научиться узнавать число number. Узнала или нет?
             boolean answer = check(number);
-            // На ложное число сеть сказала "ДА"
-            if (number.getValue() != target.getValue() && answer) {
-                changeWeights(-1);
-            }
 
-            // На нужное число сеть выдала "НЕТ"
-            if (number.getValue() == target.getValue() && !answer) {
-                changeWeights(1);
+            if (answer) {
+                withoutError++;
+            } else {
+                withoutError = 0;
+                ErrorType errorType = ErrorType.NONE;
+                if (layerR.countActivated() == 0)   errorType = ErrorType.ALL_NOT_ACTIVED;
+                if (layerR.countActivated() == 1)   errorType = ErrorType.INCORRECT_ACTIVED;
+                if (layerR.countActivated() > 1)    errorType = ErrorType.EXTRA_ACTIVED;
+                changeWeights(errorType, index);
             }
-
-            // Если без изменения весов произошло указанное количество итераций, то обучение заканчивается
-            if (i - countEval == pattern.length*10) break;
+            log.append(String.format(Locale.ENGLISH, "%b\n", answer));
         }
 
+        layerA.deleteDeadNeurons();
+        log.append(String.format(Locale.ENGLISH, "Dead neuron: %d\n", config.getCountA() - layerA.countLive()));
         log.append("Live: ");
         StringBuilder string = new StringBuilder();
-        for (int i = 0; i < layerA.size(); i++) {
+        for (int i = 0; i < layerA.curentSize(); i++) {
             string.append(String.format(Locale.ENGLISH, "%2d", (layerA.isLive(i)) ? 1 : 0));
         }
         log.append(string.toString().concat("\n"));
+    }
+
+    public int countLiveA() {
+        return layerA.countLive();
+    }
+
+
+    private enum ErrorType {
+        ALL_NOT_ACTIVED,
+        EXTRA_ACTIVED,
+        INCORRECT_ACTIVED,
+        NONE
     }
 }

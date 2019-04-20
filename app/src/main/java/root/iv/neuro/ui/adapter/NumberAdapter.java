@@ -1,6 +1,7 @@
 package root.iv.neuro.ui.adapter;
 
 import android.graphics.Bitmap;
+import android.graphics.Path;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +19,15 @@ import root.iv.neuronet.Number;
 public class NumberAdapter extends RecyclerView.Adapter<NumberAdapter.ViewHolder> {
     private LayoutInflater inflater;
     private List<Number> numberList;
-    private List<Bitmap> bitmapList;
+    private List<Bitmap> previewBitmapList;
+    private List<Path> originalPath;
     private View.OnClickListener listener;
 
 
     public NumberAdapter(LayoutInflater inflater, View.OnClickListener listener) {
         this.inflater = inflater;
-        this.bitmapList = new LinkedList<>();
+        this.originalPath = new LinkedList<>();
+        this.previewBitmapList = new LinkedList<>();
         this.numberList = new LinkedList<>();
         this.listener = listener;
     }
@@ -45,26 +48,24 @@ public class NumberAdapter extends RecyclerView.Adapter<NumberAdapter.ViewHolder
         return numberList.size();
     }
 
-    public void append(Number number, Bitmap bitmap) {
+    public void append(Number number, Bitmap bitmap, Path original) {
         int count = numberList.size();
         numberList.add(number);
-        bitmapList.add(bitmap);
+        previewBitmapList.add(bitmap);
+        originalPath.add(original);
         notifyItemInserted(count);
     }
 
     public void clear() {
         int count = numberList.size();
         numberList.clear();
-        bitmapList.clear();
+        previewBitmapList.clear();
+        originalPath.clear();
         notifyItemRangeRemoved(0, count);
     }
 
-    public int getValue(int index) {
-        return numberList.get(index).getValue();
-    }
-
-    public Number getItem(int index) {
-        return numberList.get(index);
+    public Path getPath(int index) {
+        return originalPath.get(index);
     }
 
     public List<Number> getNumbers() {
@@ -84,7 +85,7 @@ public class NumberAdapter extends RecyclerView.Adapter<NumberAdapter.ViewHolder
         }
 
         public void bind(int pos) {
-            Bitmap bitmap = bitmapList.get(pos);
+            Bitmap bitmap = previewBitmapList.get(pos);
             Number number = numberList.get(pos);
             preview.setImageBitmap(bitmap);
             viewName.setText(String.valueOf(number.getValue()));

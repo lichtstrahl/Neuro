@@ -58,6 +58,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/check"/>
 
+            <Button
+                android:id="@+id/buttonTrain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/train"/>
+
 
         </LinearLayout>
 

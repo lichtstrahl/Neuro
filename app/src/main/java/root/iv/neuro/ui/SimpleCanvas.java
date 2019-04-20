@@ -82,4 +82,12 @@ public class SimpleCanvas extends View {
     public void clear() {
         needsClear = true;
     }
+
+    public Path getPath() {
+        return path;
+    }
+
+    public void setPath(Path path) {
+        this.path = path;
+    }
 }

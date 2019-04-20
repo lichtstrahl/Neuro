@@ -1,55 +1,114 @@
 package root.iv.neuronet.perceptron;
 
-public class Layer {
-    private Neuron[] layer;
+import java.util.LinkedList;
+import java.util.List;
 
-    public Layer(int size, int bias, int sizeNext, int sizePrev, WeightFillType fillType) {
-        layer = new Neuron[size];
-        for (int i = 0; i < size; i++)
-            layer[i] = new Neuron(bias, sizeNext, sizePrev, fillType);
+import root.iv.neuronet.Number;
+import root.iv.neuronet.perceptron.cmd.Command;
+
+public class Layer {
+    private LinkedList<Neuron> layer;
+    private int originalSize;
+    private int bias;
+    private int sizePrev;
+    private Command<int[]> fillType;
+
+    public Layer(int size, int bias, int sizePrev, Command fillType) {
+        this.originalSize = size;
+        this.bias = bias;
+        this.sizePrev = sizePrev;
+        this.fillType = fillType;
+        layer = new LinkedList<>();
+        reset();
     }
 
     public void release() {
         for (Neuron n : layer)
-            n.release();
+            if (n != null) n.release();
     }
 
     public void reset() {
-        for (Neuron n : layer)
-            n.reset();
+        layer.clear();
+        for (int i = 0; i < originalSize; i++)
+            layer.add(new Neuron(bias, sizePrev, fillType));
     }
 
     /**
-     * Увелиение весов нейронов, выдавших правильный результат
+     * Удаление мертвых нейронов
      */
-    public void inc() {
-        for (Neuron n : layer)
-            n.inc();
+    public void deleteDeadNeurons() {
+        for (int i = layer.size()-1; i >= 0; i--) {
+            if (!layer.get(i).isLive())
+                layer.set(i, null);
+        }
     }
 
     /**
-     * Уменьшение весов активировавшихся по ошибке нейронов
+     * Активация слоя по числу (для сенсоров)
      */
-    public void dec() {
+    public void activate(Number number) {
+        for (int p = 0; p < number.getSize(); p++) {
+            if (number.getPixel(p) == 1) {
+                layer.get(p).activate();
+            }
+        }
+    }
+
+    /**
+     * @return Количество активировавшихся нейронов
+     */
+    public int countActivated() {
+        int count = 0;
         for (Neuron n : layer)
-            n.dec();
+            count += (n.isActive()) ? 1 : 0;
+        return count;
+    }
+
+    /**
+     * @return Количество живых нейронов
+     */
+    public int countLive() {
+        int count = 0;
+        for (Neuron n : layer)
+            count += (n != null && n.isLive()) ? 1 : 0;
+        return count;
+    }
+
+    /**
+     * Возвращает первый активный нейрон. Подразумевается, что он единственный
+     * @return Номер активированного нейрона
+     */
+    public Integer getActiveNeuron() {
+        Integer index = null;
+        for (int i = 0; i < layer.size(); i++) {
+            if (layer.get(i).isActive()) {
+                if (index == null) {
+                    index = i;
+                } else {
+                    return null;
+                }
+            }
+        }
+        return index;
     }
 
     public boolean isActive(int index) {
-        return layer[index].isActive();
+        return layer.get(index).isActive();
     }
 
     public boolean isLive(int index) {
-        return layer[index].isLive();
+        return layer.get(index) != null && layer.get(index).isLive();
     }
 
-    public int size() {
-        return layer.length;
+    public int curentSize() {
+        return layer.size();
     }
 
     public Neuron get(int index) {
-        return layer[index];
+        return layer.get(index);
     }
 
-
+    public List<Neuron> getNeurons() {
+        return layer;
+    }
 }

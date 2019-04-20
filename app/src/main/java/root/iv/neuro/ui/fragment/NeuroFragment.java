@@ -2,6 +2,7 @@ package root.iv.neuro.ui.fragment;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,19 +34,22 @@ import root.iv.neuro.util.BitmapConverter;
 import root.iv.neuronet.Number;
 import root.iv.neuronet.perceptron.Configuration;
 import root.iv.neuronet.perceptron.Perceptron;
-import root.iv.neuronet.perceptron.WeightFillType;
+import root.iv.neuronet.perceptron.cmd.FillConstantCommand;
 
 
 public class NeuroFragment extends Fragment {
     private static final int SIZE_PREVIEW = 10;
-    private static final Configuration configuration = new Configuration(
-            2,
-            SIZE_PREVIEW*SIZE_PREVIEW*2/5,
+    private static final Configuration configurationPointToPoint = new Configuration(
             1,
-            SIZE_PREVIEW*SIZE_PREVIEW*2,
+            SIZE_PREVIEW*SIZE_PREVIEW/10,
+            3,
+            SIZE_PREVIEW*SIZE_PREVIEW, // количество A
             SIZE_PREVIEW*SIZE_PREVIEW,
-            WeightFillType.RANDOM
+            new FillConstantCommand(0),
+            new FillConstantCommand(0)
     );
+    private static final Configuration configuration = configurationPointToPoint;
+
     @BindView(R.id.canvas)
     protected SimpleCanvas simpleCanvas;
     @BindView(R.id.viewCurrentPattern)
@@ -53,12 +57,11 @@ public class NeuroFragment extends Fragment {
     @BindView(R.id.progress)
     protected ProgressBar progressBar;
     @BindView(R.id.listNumbers)
-    RecyclerView listNumbers;
+    protected RecyclerView listNumbers;
     private NumberAdapter numberAdapter;
     private int currentPattern = -1;
     private Perceptron perceptron = new Perceptron(configuration);
     private CompositeDisposable disposable;
-    private int target;
 
     @Nullable
     @Override
@@ -69,26 +72,10 @@ public class NeuroFragment extends Fragment {
         disposable = new CompositeDisposable();
 
         numberAdapter = new NumberAdapter(getLayoutInflater(), v -> {
-            progressBar.setVisibility(View.VISIBLE);
-            target = listNumbers.getChildAdapterPosition(v);
-            final Number number = numberAdapter.getItem(target);
-            Disposable d = Completable.fromCallable(() -> {
-                StringBuilder logger = new StringBuilder();
-                perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), number, logger);
-                App.logI(logger.toString());
-                return true;
-            })
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            () -> {
-                                Toast.makeText(this.getContext(), "Обучение на распознавание " + number.getValue() + " Закончено", Toast.LENGTH_SHORT).show() ;
-                                progressBar.setVisibility(View.GONE);
-                            },
-                            error -> App.logE(error.getMessage())
-                    );
-
-            disposable.add(d);
+            int t = listNumbers.getChildAdapterPosition(v);
+            Path p = numberAdapter.getPath(t);
+            simpleCanvas.setPath(p);
+            simpleCanvas.invalidate();
         });
         listNumbers.setAdapter(numberAdapter);
         listNumbers.setLayoutManager(new LinearLayoutManager(this.getContext(), RecyclerView.HORIZONTAL, false));
@@ -98,10 +85,14 @@ public class NeuroFragment extends Fragment {
     }
 
     private Bitmap getPreview() {
+        return Bitmap.createScaledBitmap(getCanvasBitmap(), SIZE_PREVIEW, SIZE_PREVIEW, false);
+    }
+
+    private Bitmap getCanvasBitmap() {
         Bitmap bitmap = Bitmap.createBitmap(simpleCanvas.getWidth(), simpleCanvas.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         simpleCanvas.draw(canvas);
-        return Bitmap.createScaledBitmap(bitmap, SIZE_PREVIEW, SIZE_PREVIEW, false);
+        return bitmap;
     }
 
     @OnClick(R.id.buttonClear)
@@ -113,7 +104,7 @@ public class NeuroFragment extends Fragment {
     @OnClick(R.id.buttonAddPattern)
     void clickAppendPattern() {
         Bitmap scaled = getPreview();
-        numberAdapter.append(BitmapConverter.createNumber(scaled, currentPattern), scaled);
+        numberAdapter.append(BitmapConverter.createNumber(scaled, currentPattern), scaled, simpleCanvas.getPath());
         updateCurrentPattern();
         Toast.makeText(this.getContext(), "Шаблонов: " + currentPattern, Toast.LENGTH_SHORT).show();
     }
@@ -127,12 +118,38 @@ public class NeuroFragment extends Fragment {
 
     @OnClick(R.id.buttonCheck)
     void clickCheck() {
-        int t = numberAdapter.getItem(target).getValue();
         Bitmap scaled = getPreview();
         StringBuilder logger = new StringBuilder();
-        boolean answer = perceptron.check(BitmapConverter.createNumber(scaled, t), logger);
+        int answer = perceptron.check(BitmapConverter.createNumber(scaled, 0), logger);
         App.logI(logger.toString());
-        Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Проверка на %d = %b", t, answer), Toast.LENGTH_SHORT).show();
+        if (answer >= 0) {
+            Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Это число %d", answer), Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this.getContext(), "Не удалось определить число", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @OnClick(R.id.buttonTrain)
+    void clickTrain() {
+        progressBar.setVisibility(View.VISIBLE);
+        Disposable d = Completable.fromCallable(() -> {
+            StringBuilder logger = new StringBuilder();
+            perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), logger);
+            App.logI(logger.toString());
+            return true;
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        () -> {
+                            Toast.makeText(this.getContext(), "Обучение Закончено", Toast.LENGTH_SHORT).show() ;
+                            viewCurrentPattern.setText(String.format(Locale.ENGLISH, "Количество живых нйронов: %d", perceptron.countLiveA()));
+                            progressBar.setVisibility(View.GONE);
+                        },
+                        error -> App.logE(error.getMessage())
+                );
+
+        disposable.add(d);
     }
 
     @Override

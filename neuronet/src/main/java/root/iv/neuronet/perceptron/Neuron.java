@@ -1,68 +1,43 @@
 package root.iv.neuronet.perceptron;
 
-import java.util.Random;
+import java.util.List;
 
-import root.iv.neuronet.Number;
+import root.iv.neuronet.perceptron.cmd.Command;
 
 public class Neuron {
-    private int[] weightsNext;  // Веса со следующим слоем
     private int[] weightsPrev;  // Веса с предыдущим слоем
     private boolean state;
     private int bias;
     private boolean live;
-    private WeightFillType fillType;
 
-    public Neuron(int bias, int sizeNext, int sizePrev, WeightFillType fillType) {
+    public Neuron(int bias, int sizePrev, Command<int[]> fillCommand) {
         this.bias = bias;
-        this.weightsNext = new int[sizeNext];
         this.weightsPrev = new int[sizePrev];
-        this.fillType = fillType;
-        updateWeights();
+        fillCommand.setArgumet(weightsPrev);
+        fillCommand.execute();
         release();
-        reset();
-    }
-
-    public void updateWeights() {
-        switch (this.fillType) {
-            case SINGLE_FULL:
-            case SINGLE:
-                throw new UnsupportedOperationException("Поддерживается только случайное заполнение весов");
-
-            case RANDOM:
-                Random random = new Random();
-                for (int i = 0; i < weightsPrev.length; i++) {
-                    int r = random.nextInt(3);
-                    weightsPrev[i] = 1-r; // {-1,0,1}
-                }
-                break;
-        }
-
-        for (int i = 0; i < weightsNext.length; i++)
-            weightsNext[i] = 1;
+        live = false;
     }
 
     /**
-     * Проверяем, активирует данный A-элемент указанное число
-     * @param target Проверяемое число
+     * Получаем массив целых чисел из {0,1}
+     * Этот массив символизирует активировавшиеся элементы с предыдущего слоя
+     * @param prev Проверяемое число
      */
-    public void activate(Number target) {
+    public void activate(List<Neuron> prev) {
 
         int sum = 0;   // Накапливаем сумму для элемента
         for (int p = 0; p < weightsPrev.length; p++) {
-            sum += target.getPixel(p) * weightsPrev[p];
+            if (prev.get(p) == null) continue;                      // Если вес == 0, значит
+            sum += ((prev.get(p).state) ? 1 : 0) * weightsPrev[p];  // Если активировался, то 1. Если нет, то 0
         }
 
         state = (sum >= bias);
         if (state) live = true;
     }
 
-    /**
-     * Иммитация передачи сигнала на следующий слой. В данном случае предполагается, что последний слой состоит из 1 элемента
-     * @return Выходное количество сигнала. Представляет собой произведение 1 и веса
-     */
-    public int signalToNext() {
-        if (weightsNext.length != 1) throw new IllegalStateException("Размерность выходного слоя должна быть 1");
-        return (isActive()) ? weightsNext[0] : 0;
+    public void activate() {
+        state = true;
     }
 
     public boolean isActive() {
@@ -77,16 +52,15 @@ public class Neuron {
         return live;
     }
 
-    public void reset() {
-        live = false;
-        updateWeights();
+    /**
+     * Увеличивается вес конкретной связи
+     * @param index Элемент, с которым следует увеличить связь
+     */
+    public void inc(int index) {
+        weightsPrev[index]++;
     }
 
-    public void inc() {
-        if (state) weightsNext[0]++;
-    }
-
-    public void dec() {
-        if (state) weightsNext[0]--;
+    public void dec(int index) {
+        weightsPrev[index]--;
     }
 }
