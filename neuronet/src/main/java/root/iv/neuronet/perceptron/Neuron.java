@@ -1,5 +1,6 @@
 package root.iv.neuronet.perceptron;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import root.iv.neuronet.perceptron.cmd.Command;
@@ -9,6 +10,7 @@ public class Neuron {
     private boolean state;
     private int bias;
     private boolean live;
+    private List<Integer> copy;
 
     public Neuron(int bias, int sizePrev, Command<int[]> fillCommand) {
         this.bias = bias;
@@ -17,6 +19,11 @@ public class Neuron {
         fillCommand.execute();
         release();
         live = false;
+
+        // Заполнение массива потенциальных копий
+        copy = new LinkedList<>();
+        for (int i = 0; i < sizePrev; i++)
+            copy.add(i);
     }
 
     /**
@@ -28,7 +35,7 @@ public class Neuron {
 
         int sum = 0;   // Накапливаем сумму для элемента
         for (int p = 0; p < weightsPrev.length; p++) {
-            if (prev.get(p) == null) continue;                      // Если вес == 0, значит
+            if (prev.get(p) == null) continue;
             sum += ((prev.get(p).state) ? 1 : 0) * weightsPrev[p];  // Если активировался, то 1. Если нет, то 0
         }
 
@@ -62,5 +69,36 @@ public class Neuron {
 
     public void dec(int index) {
         weightsPrev[index]--;
+    }
+
+    /**
+     * Пометить копию к удалению
+     * @param index
+     */
+    public void markToRemoveCopy(int index) {
+        copy.set(index, null);
+    }
+
+    /**
+     *
+     */
+    public void removeAllCopy() {
+        List<Integer> newCopy = new LinkedList<>();
+
+        for (Integer integer : copy) {
+            if (integer != null) {
+                newCopy.add(integer);
+            }
+        }
+
+        copy = newCopy;
+    }
+
+    public int countCopy() {
+        return copy.size();
+    }
+
+    public int getIndexCopy(int num) {
+        return copy.get(num);
     }
 }

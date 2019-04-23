@@ -145,8 +145,7 @@ public class NeuroFragment extends Fragment {
                             Toast.makeText(this.getContext(), "Обучение Закончено", Toast.LENGTH_SHORT).show() ;
                             viewCurrentPattern.setText(String.format(Locale.ENGLISH, "Количество живых нйронов: %d", perceptron.countLiveA()));
                             progressBar.setVisibility(View.GONE);
-                        },
-                        error -> App.logE(error.getMessage())
+                        }
                 );
 
         disposable.add(d);

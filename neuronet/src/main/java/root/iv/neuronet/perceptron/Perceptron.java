@@ -18,19 +18,16 @@ public class Perceptron {
     private Layer layerA;
     private Layer layerR;
     private Configuration config;
-    private int countEval;
 
     public Perceptron(Configuration config) {
         this.config = config;
         this.layerS = new Layer(config.getCountS(), 0, 0, config.getFillTypeSA());
         this.layerA = new Layer(config.getCountA(), config.getBiasA(), config.getCountS(), config.getFillTypeSA());
         this.layerR = new Layer(config.getCountR(), config.getBiasR(), config.getCountA(), config.getFillTypeAR());
-
-        countEval = 0;
     }
 
     // Является ли полученное число тем, на которое обучается сеть
-    private boolean check(Number number) {
+    private boolean check(Number number, boolean searchCopy) {
         layerS.release();           //  Все нейроны деактивируются
         layerS.activate(number);    //  Активируются сенсора по конкретному изображению
         layerA.release();           //  Все нейроны деактивируются
@@ -40,8 +37,29 @@ public class Perceptron {
         // Пробуем активировать A-слой
         for (int a = 0; a < layerA.curentSize(); a++) {
             Neuron neuron = layerA.get(a);
+            // Здесь должна записываться история
             if (neuron != null) neuron.activate(layerS.getNeurons());
         }
+
+        if (searchCopy) {
+            // Проверяем каждый A-элемент на предмет повторения значений
+            for (int a = 0; a < layerA.curentSize(); a++) {
+                Neuron neuron = layerA.get(a);
+                if (neuron != null) {
+                    for (int copy = 0; copy < neuron.countCopy(); copy++) {
+                        int indexPotentialCopy = neuron.getIndexCopy(copy);
+                        Neuron potentialCopy = layerA.get(indexPotentialCopy);
+                        // Если значение copy не совпадает со значением a, то это не его дублирующий элемент
+                        if (copy != a && neuron != null && potentialCopy != null && neuron.isActive() != potentialCopy.isActive()) {
+                            neuron.markToRemoveCopy(copy);
+                        }
+                    }
+                    // Удаляем все "найденные" копии
+                    neuron.removeAllCopy();
+                }
+            }
+        }
+
 
 
         // Пробуем активировать R-слой
@@ -57,13 +75,71 @@ public class Perceptron {
     }
 
     public int check(Number number, StringBuilder log) {
-        check(number);
+        check(number, false);
         log.append("Check\n");
         Integer n = layerR.getActiveNeuron();
 
         return (n != null) ? n : -1;
     }
 
+    /**
+     * Тренировка сети
+     */
+    public void traning(Number[] pattern, int count, StringBuilder log) {
+        this.layerR = new Layer(count, config.getBiasR(), config.getCountA(), config.getFillTypeAR());
+        layerA.reset();
+        layerR.reset();
+
+        // Потенциально копиями могут быть любые A-элементы
+        // Установить связь точка к точке
+        for (int i = 0; i < this.layerA.curentSize(); i++) {
+            layerA.get(i).inc(i);
+        }
+
+        int withoutError = 0;
+
+        // Общий процесс обучения
+        for (int i = 0; withoutError < (pattern.length*5);i++) {
+            // Этап обучения - полная прогонка всех примеров
+            for (Number number : pattern) {
+
+                // Пробуем научиться узнавать число number. Узнала или нет?
+                boolean answer = check(number, true);
+
+                if (answer) {
+                    withoutError++;
+                } else {
+                    withoutError = 0;
+                    ErrorType errorType = ErrorType.NONE;
+                    if (layerR.countActivated() == 0) errorType = ErrorType.ALL_NOT_ACTIVED;
+                    if (layerR.countActivated() == 1) errorType = ErrorType.INCORRECT_ACTIVED;
+                    if (layerR.countActivated() > 1) errorType = ErrorType.EXTRA_ACTIVED;
+                    changeWeights(errorType, number.getValue());
+                }
+                log.append(String.format(Locale.ENGLISH, "%b\n", answer));
+            }
+            layerA.deleteDeadNeurons();
+            layerA.deleteCopy();
+        }
+
+
+        // Вывод количества умерщих
+        log.append(String.format(Locale.ENGLISH, "Dead neuron: %d\n", config.getCountA() - layerA.countLive()));
+        // Вывод живых нейронов
+        log.append("Live: ");
+        StringBuilder string = new StringBuilder();
+        for (int i = 0; i < layerA.curentSize(); i++) {
+            string.append(String.format(Locale.ENGLISH, "%2d", (layerA.isLive(i)) ? 1 : 0));
+        }
+        log.append(string.toString().concat("\n"));
+
+        // Вывод количества копий
+        log.append("Copy: ");
+        for (int a = 0; a < layerA.curentSize(); a++)
+            log.append(String.format(Locale.ENGLISH, "%2d", layerA.countCopy(a)));
+        log.append("\n");
+
+    }
     /**
      *
      * @param errorType Тип произошедшей ошибки
@@ -95,51 +171,6 @@ public class Perceptron {
                 }
                 break;
         }
-
-        countEval++;
-    }
-
-    //        Тренировка сети
-    public void traning(Number[] pattern, int count, StringBuilder log) {
-        this.layerR = new Layer(count, config.getBiasR(), config.getCountA(), config.getFillTypeAR());
-        layerA.reset();
-        layerR.reset();
-
-        // Установить связь точка к точке
-        for (int i = 0; i < this.layerA.curentSize(); i++)
-            layerA.get(i).inc(i);
-
-        int withoutError = 0;
-
-        for (int i = 0; withoutError < (pattern.length*5);i++) {
-            // Генерируем случайное число от 0 до 9
-            int index = i % pattern.length;
-            Number number = pattern[index];
-
-            // Пробуем научиться узнавать число number. Узнала или нет?
-            boolean answer = check(number);
-
-            if (answer) {
-                withoutError++;
-            } else {
-                withoutError = 0;
-                ErrorType errorType = ErrorType.NONE;
-                if (layerR.countActivated() == 0)   errorType = ErrorType.ALL_NOT_ACTIVED;
-                if (layerR.countActivated() == 1)   errorType = ErrorType.INCORRECT_ACTIVED;
-                if (layerR.countActivated() > 1)    errorType = ErrorType.EXTRA_ACTIVED;
-                changeWeights(errorType, index);
-            }
-            log.append(String.format(Locale.ENGLISH, "%b\n", answer));
-        }
-
-        layerA.deleteDeadNeurons();
-        log.append(String.format(Locale.ENGLISH, "Dead neuron: %d\n", config.getCountA() - layerA.countLive()));
-        log.append("Live: ");
-        StringBuilder string = new StringBuilder();
-        for (int i = 0; i < layerA.curentSize(); i++) {
-            string.append(String.format(Locale.ENGLISH, "%2d", (layerA.isLive(i)) ? 1 : 0));
-        }
-        log.append(string.toString().concat("\n"));
     }
 
     public int countLiveA() {

@@ -38,8 +38,26 @@ public class Layer {
      */
     public void deleteDeadNeurons() {
         for (int i = layer.size()-1; i >= 0; i--) {
-            if (!layer.get(i).isLive())
+            if (layer.get(i) != null && !layer.get(i).isLive())
                 layer.set(i, null);
+        }
+    }
+
+    /**
+     * Поиск кореллирующих нейронов
+     */
+    public void deleteCopy() {
+        for (int i = 0; i < layer.size(); i++) {
+            Neuron neuron = layer.get(i);
+            if (neuron != null) {
+                for (int copy = 0; copy < neuron.countCopy(); copy++) {
+                    int indexCopy = neuron.getIndexCopy(copy);
+                    // Самого себя не удаляем
+                    if (indexCopy != i) {
+                        layer.set(indexCopy, null);
+                    }
+                }
+            }
         }
     }
 
@@ -70,7 +88,7 @@ public class Layer {
     public int countLive() {
         int count = 0;
         for (Neuron n : layer)
-            count += (n != null && n.isLive()) ? 1 : 0;
+            count += (n != null) ? 1 : 0;
         return count;
     }
 
@@ -93,11 +111,20 @@ public class Layer {
     }
 
     public boolean isActive(int index) {
-        return layer.get(index).isActive();
+        return layer.get(index) != null && layer.get(index).isActive();
     }
 
     public boolean isLive(int index) {
         return layer.get(index) != null && layer.get(index).isLive();
+    }
+
+    public int countCopy(int index) {
+        Neuron neuron = layer.get(index);
+        if (neuron != null) {
+            return neuron.countCopy();
+        } else {
+            return -1;
+        }
     }
 
     public int curentSize() {
