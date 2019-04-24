@@ -1,4 +1,4 @@
-package root.iv.neuronet.perceptron;
+package root.iv.neuronet.perceptron.rosenblat;
 
 public enum WeightFillType {
     RANDOM,

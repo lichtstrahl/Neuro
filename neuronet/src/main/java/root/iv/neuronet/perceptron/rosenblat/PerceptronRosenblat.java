@@ -1,4 +1,4 @@
-package root.iv.neuronet.perceptron;
+package root.iv.neuronet.perceptron.rosenblat;
 
 import java.util.Locale;
 
@@ -12,14 +12,14 @@ import root.iv.neuronet.Number;
  * random, 2, len/5 С удвоенным количеством А-элементов
  */
 
-public class Perceptron {
+public class PerceptronRosenblat {
     // Активизировавшиеся А-элементы
     private Layer layerS;
     private Layer layerA;
     private Layer layerR;
     private Configuration config;
 
-    public Perceptron(Configuration config) {
+    public PerceptronRosenblat(Configuration config) {
         this.config = config;
         this.layerS = new Layer(config.getCountS(), 0, 0, config.getFillTypeSA());
         this.layerA = new Layer(config.getCountA(), config.getBiasA(), config.getCountS(), config.getFillTypeSA());

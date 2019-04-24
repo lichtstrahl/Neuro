@@ -32,7 +32,7 @@ import root.iv.neuro.ui.SimpleCanvas;
 import root.iv.neuro.ui.adapter.NumberAdapter;
 import root.iv.neuro.util.BitmapConverter;
 import root.iv.neuronet.Number;
-import root.iv.neuronet.perceptron.Configuration;
+import root.iv.neuronet.perceptron.rosenblat.Configuration;
 import root.iv.neuronet.perceptron.Perceptron;
 import root.iv.neuronet.perceptron.cmd.FillConstantCommand;
 
