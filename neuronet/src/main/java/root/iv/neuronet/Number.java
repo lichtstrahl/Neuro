@@ -20,4 +20,8 @@ public class Number {
     public int getSize() {
         return pixs.length;
     }
+
+    public int[] getPixs() {
+        return pixs;
+    }
 }

@@ -11,6 +11,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
@@ -32,9 +34,11 @@ import root.iv.neuro.ui.SimpleCanvas;
 import root.iv.neuro.ui.adapter.NumberAdapter;
 import root.iv.neuro.util.BitmapConverter;
 import root.iv.neuronet.Number;
-import root.iv.neuronet.perceptron.rosenblat.Configuration;
-import root.iv.neuronet.perceptron.Perceptron;
 import root.iv.neuronet.perceptron.cmd.FillConstantCommand;
+import root.iv.neuronet.perceptron.remelhart.PerceptronRumelhart;
+import root.iv.neuronet.perceptron.remelhart.Train;
+import root.iv.neuronet.perceptron.remelhart.TrainSet;
+import root.iv.neuronet.perceptron.rosenblat.Configuration;
 
 
 public class NeuroFragment extends Fragment {
@@ -60,8 +64,8 @@ public class NeuroFragment extends Fragment {
     protected RecyclerView listNumbers;
     private NumberAdapter numberAdapter;
     private int currentPattern = -1;
-    private Perceptron perceptron = new Perceptron(configuration);
     private CompositeDisposable disposable;
+    private Train train;
 
     @Nullable
     @Override
@@ -120,22 +124,37 @@ public class NeuroFragment extends Fragment {
     void clickCheck() {
         Bitmap scaled = getPreview();
         StringBuilder logger = new StringBuilder();
-        int answer = perceptron.check(BitmapConverter.createNumber(scaled, 0), logger);
+//        int answer = perceptron.check(BitmapConverter.createNumber(scaled, 0), logger);
+//        App.logI(logger.toString());
+//        if (answer >= 0) {
+//            Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Это число %d", answer), Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(this.getContext(), "Не удалось определить число", Toast.LENGTH_SHORT).show();
+//        }
+        train.setInputs(BitmapConverter.createNumber(scaled, 0).getPixs());
+        List<Double> out = train.getOutputs();
+        logger.append("Out: ");
+        for (Double d : out)
+            logger.append(String.format(Locale.ENGLISH, "%4.1f", d));
+        logger.append("\n");
         App.logI(logger.toString());
-        if (answer >= 0) {
-            Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Это число %d", answer), Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this.getContext(), "Не удалось определить число", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @OnClick(R.id.buttonTrain)
     void clickTrain() {
         progressBar.setVisibility(View.VISIBLE);
         Disposable d = Completable.fromCallable(() -> {
-            StringBuilder logger = new StringBuilder();
-            perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), numberAdapter.getItemCount(), logger);
-            App.logI(logger.toString());
+//            StringBuilder logger = new StringBuilder();
+            List<TrainSet> sets = new LinkedList<>();
+            for (int i = 0; i < numberAdapter.getItemCount(); i++)
+                sets.add(buildTrainSet(numberAdapter.getNumbers().get(i), i));
+
+            train = new Train();
+            train.setTrainSets(sets);
+            train.buildPerceptron(numberAdapter.getItemCount());
+            train.train(1000);
+//            perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), numberAdapter.getItemCount(), logger);
+//            App.logI(logger.toString());
             return true;
         })
                 .subscribeOn(Schedulers.io())
@@ -143,12 +162,22 @@ public class NeuroFragment extends Fragment {
                 .subscribe(
                         () -> {
                             Toast.makeText(this.getContext(), "Обучение Закончено", Toast.LENGTH_SHORT).show() ;
-                            viewCurrentPattern.setText(String.format(Locale.ENGLISH, "Количество живых нйронов: %d", perceptron.countLiveA()));
+//                            viewCurrentPattern.setText(String.format(Locale.ENGLISH, "Количество живых нйронов: %d", perceptron.countLiveA()));
                             progressBar.setVisibility(View.GONE);
                         }
                 );
 
         disposable.add(d);
+    }
+
+    private TrainSet buildTrainSet(Number n, int index) {
+        double[] good = new double[numberAdapter.getItemCount()];
+
+        for (int i = 0; i < good.length; i++) {
+            good[i] = (i == index) ? 1.0 : 0.0;
+        }
+
+        return new TrainSet(n.getPixs(), good);
     }
 
     @Override

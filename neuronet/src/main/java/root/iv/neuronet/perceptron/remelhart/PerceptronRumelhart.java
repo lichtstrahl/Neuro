@@ -16,7 +16,7 @@ public class PerceptronRumelhart {
         }
     }
 
-    public void setInput(List<Integer> input) {
+    public void setInput(int[] input) {
         for (Neuron n : neurons)
             n.setInput(input);
     }
@@ -30,9 +30,9 @@ public class PerceptronRumelhart {
         return out;
     }
 
-    public void adjustWages(List<Double> goodOutput) {
+    public void adjustWages(double[] goodOutput) {
         for (int i = 0; i < neurons.size(); i++) {
-            double delta = goodOutput.get(i) - neurons.get(i).getOutput();
+            double delta = goodOutput[i] - neurons.get(i).getOutput();
             neurons.get(i).adjustWeights(delta);
         }
     }

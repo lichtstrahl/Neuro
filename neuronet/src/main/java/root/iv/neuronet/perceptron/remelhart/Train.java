@@ -7,14 +7,7 @@ public class Train {
     private PerceptronRumelhart perceptron;
     private List<TrainSet> trainSets;
 
-    /**
-     * @param set   - наборы для тренировок
-     * @param count - количество нейронов
-     */
-    public Train(List<TrainSet> set, int count) {
-        this.perceptron = new PerceptronRumelhart();
-        this.perceptron.addNeurons(count);
-        this.trainSets = set;
+    public Train() {
     }
 
     public void train(long count) {
@@ -26,7 +19,7 @@ public class Train {
         }
     }
 
-    public void setInputs(List<Integer> inputs) {
+    public void setInputs(int[] inputs) {
         perceptron.setInput(inputs);
     }
 
@@ -36,5 +29,15 @@ public class Train {
 
     public List<Double> getOutputs() {
         return perceptron.getOutputs();
+    }
+
+
+    public void buildPerceptron(int count) {
+        this.perceptron = new PerceptronRumelhart();
+        this.perceptron.addNeurons(count);
+    }
+
+    public void setTrainSets(List<TrainSet> trainSets) {
+        this.trainSets = trainSets;
     }
 }
