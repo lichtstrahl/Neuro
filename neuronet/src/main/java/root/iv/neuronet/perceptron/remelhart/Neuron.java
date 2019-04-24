@@ -3,6 +3,8 @@ package root.iv.neuronet.perceptron.remelhart;
 import java.util.LinkedList;
 import java.util.List;
 
+import root.iv.neuronet.MathUtils;
+
 public class Neuron {
     private static final int BIAS = 1;  // Порог
     private static final double LEARNING_RATIO = 0.1;   // Скорость обучения
@@ -10,7 +12,6 @@ public class Neuron {
     private int[] input;
     private List<Double> weights;
     private double biasWeights;
-    private double output;
 
     public Neuron() {
         this.weights = new LinkedList<>();
@@ -32,7 +33,7 @@ public class Neuron {
         }
     }
 
-    public void calculateOutput() {
+    public double calculateOutput() {
         double sum = 0;
 
         for (int i = 0; i < input.length; i++) {
@@ -40,7 +41,7 @@ public class Neuron {
         }
         sum += BIAS * biasWeights;
 
-        output = MathUtils.sigmoid(sum);
+        return MathUtils.sigmoid(sum);
     }
 
     /**
@@ -55,10 +56,5 @@ public class Neuron {
         }
 
         biasWeights += LEARNING_RATIO * delta * BIAS;
-    }
-
-    public double getOutput() {
-        calculateOutput();
-        return output;
     }
 }

@@ -21,18 +21,18 @@ public class PerceptronRumelhart {
             n.setInput(input);
     }
 
-    public List<Double> getOutputs() {
-        List<Double> out = new LinkedList<>();
+    public double[] getOutputs() {
+        double[] out = new double[neurons.size()];
 
-        for (Neuron n : neurons)
-            out.add(n.getOutput());
+        for (int i = 0; i < neurons.size(); i++)
+            out[i] = neurons.get(i).calculateOutput();
 
         return out;
     }
 
     public void adjustWages(double[] goodOutput) {
         for (int i = 0; i < neurons.size(); i++) {
-            double delta = goodOutput[i] - neurons.get(i).getOutput();
+            double delta = goodOutput[i] - neurons.get(i).calculateOutput();
             neurons.get(i).adjustWeights(delta);
         }
     }

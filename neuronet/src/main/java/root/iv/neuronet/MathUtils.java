@@ -24,4 +24,8 @@ public class MathUtils {
 
         return result;
     }
+
+    public static double sigmoid(double arg) {
+        return (1 / (1 + Math.exp(-arg)));
+    }
 }

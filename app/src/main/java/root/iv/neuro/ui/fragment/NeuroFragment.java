@@ -132,11 +132,8 @@ public class NeuroFragment extends Fragment {
 //            Toast.makeText(this.getContext(), "Не удалось определить число", Toast.LENGTH_SHORT).show();
 //        }
         train.setInputs(BitmapConverter.createNumber(scaled, 0).getPixs());
-        List<Double> out = train.getOutputs();
-        logger.append("Out: ");
-        for (Double d : out)
-            logger.append(String.format(Locale.ENGLISH, "%4.1f", d));
-        logger.append("\n");
+        int answer = train.getOutputs(logger);
+        Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Это число: " + numberAdapter.getNumbers().get(answer).getValue()), Toast.LENGTH_SHORT).show();
         App.logI(logger.toString());
     }
 
@@ -152,7 +149,7 @@ public class NeuroFragment extends Fragment {
             train = new Train();
             train.setTrainSets(sets);
             train.buildPerceptron(numberAdapter.getItemCount());
-            train.train(1000);
+            train.train(10);
 //            perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), numberAdapter.getItemCount(), logger);
 //            App.logI(logger.toString());
             return true;
