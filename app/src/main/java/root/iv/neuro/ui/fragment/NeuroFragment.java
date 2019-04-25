@@ -11,8 +11,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
@@ -36,7 +34,6 @@ import root.iv.neuro.util.BitmapConverter;
 import root.iv.neuronet.Number;
 import root.iv.neuronet.perceptron.cmd.FillConstantCommand;
 import root.iv.neuronet.perceptron.remelhart.PerceptronRumelhart;
-import root.iv.neuronet.perceptron.remelhart.Train;
 import root.iv.neuronet.perceptron.remelhart.TrainSet;
 import root.iv.neuronet.perceptron.rosenblat.Configuration;
 
@@ -65,7 +62,7 @@ public class NeuroFragment extends Fragment {
     private NumberAdapter numberAdapter;
     private int currentPattern = -1;
     private CompositeDisposable disposable;
-    private Train train;
+    private PerceptronRumelhart perceptron;
 
     @Nullable
     @Override
@@ -124,15 +121,8 @@ public class NeuroFragment extends Fragment {
     void clickCheck() {
         Bitmap scaled = getPreview();
         StringBuilder logger = new StringBuilder();
-//        int answer = perceptron.check(BitmapConverter.createNumber(scaled, 0), logger);
-//        App.logI(logger.toString());
-//        if (answer >= 0) {
-//            Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Это число %d", answer), Toast.LENGTH_SHORT).show();
-//        } else {
-//            Toast.makeText(this.getContext(), "Не удалось определить число", Toast.LENGTH_SHORT).show();
-//        }
-        train.setInputs(BitmapConverter.createNumber(scaled, 0).getPixs());
-        int answer = train.getOutputs(logger);
+        perceptron.setInput(BitmapConverter.createNumber(scaled, 0).getPixs());
+        int answer = perceptron.getOutput(logger);
         Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Это число: " + numberAdapter.getNumbers().get(answer).getValue()), Toast.LENGTH_SHORT).show();
         App.logI(logger.toString());
     }
@@ -141,17 +131,10 @@ public class NeuroFragment extends Fragment {
     void clickTrain() {
         progressBar.setVisibility(View.VISIBLE);
         Disposable d = Completable.fromCallable(() -> {
-//            StringBuilder logger = new StringBuilder();
-            List<TrainSet> sets = new LinkedList<>();
-            for (int i = 0; i < numberAdapter.getItemCount(); i++)
-                sets.add(buildTrainSet(numberAdapter.getNumbers().get(i), i));
 
-            train = new Train();
-            train.setTrainSets(sets);
-            train.buildPerceptron(numberAdapter.getItemCount());
-            train.train(10);
-//            perceptron.traning(numberAdapter.getNumbers().toArray(new Number[0]), numberAdapter.getItemCount(), logger);
-//            App.logI(logger.toString());
+            perceptron = new PerceptronRumelhart(numberAdapter.getItemCount());
+            perceptron.setOriginalNumbers(numberAdapter.getNumbers());
+            perceptron.train(10);
             return true;
         })
                 .subscribeOn(Schedulers.io())
