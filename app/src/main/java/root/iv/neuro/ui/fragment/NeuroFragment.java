@@ -132,7 +132,9 @@ public class NeuroFragment extends Fragment {
 
             perceptron = new PerceptronRumelhart(numberAdapter.getItemCount(), SIZE_PREVIEW*SIZE_PREVIEW);
             perceptron.setOriginalNumbers(numberAdapter.getNumbers());
-            perceptron.train(1000);
+            StringBuilder log = new StringBuilder();
+            perceptron.train(5e-3, log);
+            App.logI(log.toString());
             return true;
         })
                 .subscribeOn(Schedulers.io())
