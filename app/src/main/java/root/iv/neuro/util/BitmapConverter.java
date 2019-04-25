@@ -3,7 +3,7 @@ package root.iv.neuro.util;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 
-import root.iv.neuronet.Number;
+import root.iv.neuronet.perceptron.rosenblat.Number;
 
 public class BitmapConverter {
     public static Number createNumber(Bitmap bitmap, int value) {

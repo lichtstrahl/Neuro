@@ -1,8 +1,8 @@
-package root.iv.neuronet;
+package root.iv.neuronet.perceptron.rosenblat;
 
 public class Number {
-    private int[] pixs;
-    private int value;
+    protected int[] pixs;
+    protected int value;
 
     public Number(int[] pixs, int value) {
         this.pixs = pixs;
@@ -23,5 +23,15 @@ public class Number {
 
     public int[] getPixs() {
         return pixs;
+    }
+
+    public double[] goodOutput(int allCount) {
+        double[] good = new double[allCount];
+
+        for (int i = 0; i < good.length; i++) {
+            good[i] = (i == value) ? 1.0 : 0.0;
+        }
+
+        return good;
     }
 }

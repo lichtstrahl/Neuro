@@ -9,8 +9,6 @@ public class Neuron {
     /** Порог */
     private static final int BIAS = 1;
     private double biasWeights;
-    /** Входы */
-    private int[] input;
     /** Веса связей с предыдущим слоем */
     private double[] weights;
 
@@ -22,15 +20,7 @@ public class Neuron {
         }
     }
 
-    /**
-     * Задаем входы. Если задаем впервые, то сразу же генерируем веса
-     * @param input
-     */
-    public void setInput(int[] input) {
-        this.input = input;
-    }
-
-    public double calculateOutput() {
+    public double calculateOutput(int[] input) {
         double sum = 0;
 
         for (int i = 0; i < input.length; i++) {
@@ -45,11 +35,9 @@ public class Neuron {
      * Корректировка весов
      * @param delta
      */
-    public void updateWeights(double delta) {
-        for (int i = 0; i < input.length; i++) {
-            double d = weights[i];
-            d += LEARNING_RATIO * delta * input[i];
-            weights[i] = d;
+    public void updateWeights(int[] input, double delta) {
+        for (int i = 0; i < weights.length; i++) {
+            weights[i] += LEARNING_RATIO * delta * input[i];
         }
 
         biasWeights += LEARNING_RATIO * delta * BIAS;

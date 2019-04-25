@@ -3,7 +3,6 @@ package root.iv.neuronet.perceptron.rosenblat;
 import java.util.LinkedList;
 import java.util.List;
 
-import root.iv.neuronet.Number;
 import root.iv.neuronet.perceptron.cmd.Command;
 
 public class Layer {

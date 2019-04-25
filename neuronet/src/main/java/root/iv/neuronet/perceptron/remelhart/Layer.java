@@ -2,6 +2,7 @@ package root.iv.neuronet.perceptron.remelhart;
 
 public class Layer {
     private Neuron[] layer;
+    private int[] input;
 
     public Layer(int size, int sizePrev) {
         layer = new Neuron[size];
@@ -12,8 +13,7 @@ public class Layer {
     }
 
     public void setInput(int[] input) {
-        for (Neuron n : layer)
-            n.setInput(input);
+        this.input = input;
     }
 
     public int size() {
@@ -21,10 +21,23 @@ public class Layer {
     }
 
     public double calculateOutput(int index) {
-        return layer[index].calculateOutput();
+        return layer[index].calculateOutput(input);
     }
 
-    public void updateWeights(int index, double delta) {
-        layer[index].updateWeights(delta);
+    /**
+     * Обновление весов, собственно обучение
+     * @param goodOutput Образец, к которому должна стремиться сеть
+     * @return Суммарное изменение весов, которое было проведено на данном этапе
+     */
+    public double updateWeights(double[] goodOutput) {
+        double globalDelta = 0.0;
+
+        for (int r = 0; r < layer.length; r++) {
+            double delta = goodOutput[r] - layer[r].calculateOutput(input);
+            layer[r].updateWeights(input, delta);
+            globalDelta += Math.abs(delta);
+        }
+
+        return globalDelta;
     }
 }

@@ -130,7 +130,7 @@ public class NeuroFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
         Disposable d = Completable.fromCallable(() -> {
 
-            perceptron = new PerceptronRumelhart(numberAdapter.getItemCount(), SIZE_PREVIEW*SIZE_PREVIEW);
+            perceptron = new PerceptronRumelhart(SIZE_PREVIEW*SIZE_PREVIEW, SIZE_PREVIEW*SIZE_PREVIEW, numberAdapter.getItemCount());
             perceptron.setOriginalNumbers(numberAdapter.getNumbers());
             StringBuilder log = new StringBuilder();
             perceptron.train(5e-3, log);

@@ -14,7 +14,7 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import root.iv.neuro.R;
-import root.iv.neuronet.Number;
+import root.iv.neuronet.perceptron.rosenblat.Number;
 
 public class NumberAdapter extends RecyclerView.Adapter<NumberAdapter.ViewHolder> {
     private LayoutInflater inflater;

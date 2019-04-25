@@ -2,8 +2,6 @@ package root.iv.neuronet.perceptron.rosenblat;
 
 import java.util.Locale;
 
-import root.iv.neuronet.Number;
-
 /**
  * random, 2, 2 В целом нормальны
  * single, 1, 10
