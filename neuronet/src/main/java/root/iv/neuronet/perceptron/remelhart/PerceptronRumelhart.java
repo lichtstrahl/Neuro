@@ -1,23 +1,18 @@
 package root.iv.neuronet.perceptron.remelhart;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
 import root.iv.neuronet.Number;
 
 public class PerceptronRumelhart {
-    private List<Neuron> neurons;
+    private Neuron[] neurons;
     private List<Number> originals;         // Образцы
 
-    public PerceptronRumelhart(int count) {
-        neurons = new LinkedList<>();
-        addNeurons(count);
-    }
-
-    public void addNeurons(int count) {
+    public PerceptronRumelhart(int count, int sizeA) {
+        neurons = new Neuron[count];
         for (int i = 0; i < count; i++) {
-            neurons.add(new Neuron());
+            neurons[i] = new Neuron(sizeA);
         }
     }
 
@@ -27,24 +22,25 @@ public class PerceptronRumelhart {
     }
 
     public int getOutput(StringBuilder logger) {
-        double[] out = new double[neurons.size()];
+        double[] out = new double[neurons.length];
 
-        int i_max = 0;
+        int iMax = 0;
         logger.append("Out: ");
-        for (int i = 0; i < neurons.size(); i++) {
-            double o = neurons.get(i).calculateOutput();
-            if (o > out[i_max])  i_max = i;
+        for (int i = 0; i < neurons.length; i++) {
+            out[i] = neurons[i].calculateOutput();
+            if (out[i] > out[iMax])  iMax = i;
             logger.append(String.format(Locale.ENGLISH, "%4.1f", out[i]));
         }
         logger.append("\n");
 
-        return i_max;
+        return iMax;
     }
 
+
     public void adjustWages(double[] goodOutput) {
-        for (int i = 0; i < neurons.size(); i++) {
-            double delta = goodOutput[i] - neurons.get(i).calculateOutput();
-            neurons.get(i).adjustWeights(delta);
+        for (int i = 0; i < neurons.length; i++) {
+            double delta = goodOutput[i] - neurons[i].calculateOutput();
+            neurons[i].updateWeights(delta);
         }
     }
 

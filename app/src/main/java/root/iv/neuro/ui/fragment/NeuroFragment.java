@@ -31,10 +31,8 @@ import root.iv.neuro.app.App;
 import root.iv.neuro.ui.SimpleCanvas;
 import root.iv.neuro.ui.adapter.NumberAdapter;
 import root.iv.neuro.util.BitmapConverter;
-import root.iv.neuronet.Number;
 import root.iv.neuronet.perceptron.cmd.FillConstantCommand;
 import root.iv.neuronet.perceptron.remelhart.PerceptronRumelhart;
-import root.iv.neuronet.perceptron.remelhart.TrainSet;
 import root.iv.neuronet.perceptron.rosenblat.Configuration;
 
 
@@ -132,9 +130,9 @@ public class NeuroFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
         Disposable d = Completable.fromCallable(() -> {
 
-            perceptron = new PerceptronRumelhart(numberAdapter.getItemCount());
+            perceptron = new PerceptronRumelhart(numberAdapter.getItemCount(), SIZE_PREVIEW*SIZE_PREVIEW);
             perceptron.setOriginalNumbers(numberAdapter.getNumbers());
-            perceptron.train(10);
+            perceptron.train(1000);
             return true;
         })
                 .subscribeOn(Schedulers.io())
@@ -148,16 +146,6 @@ public class NeuroFragment extends Fragment {
                 );
 
         disposable.add(d);
-    }
-
-    private TrainSet buildTrainSet(Number n, int index) {
-        double[] good = new double[numberAdapter.getItemCount()];
-
-        for (int i = 0; i < good.length; i++) {
-            good[i] = (i == index) ? 1.0 : 0.0;
-        }
-
-        return new TrainSet(n.getPixs(), good);
     }
 
     @Override
