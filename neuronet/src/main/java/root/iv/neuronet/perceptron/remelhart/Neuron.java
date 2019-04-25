@@ -4,12 +4,15 @@ package root.iv.neuronet.perceptron.remelhart;
 import root.iv.neuronet.MathUtils;
 
 public class Neuron {
-    private static final int BIAS = 1;  // Порог
-    private static final double LEARNING_RATIO = 0.1;   // Скорость обучения
-
-    private int[] input;
-    private double[] weights;
+    /** Скорость обучения */
+    private static final double LEARNING_RATIO = 0.1;
+    /** Порог */
+    private static final int BIAS = 1;
     private double biasWeights;
+    /** Входы */
+    private int[] input;
+    /** Веса связей с предыдущим слоем */
+    private double[] weights;
 
     public Neuron(int countPrev) {
         this.weights = new double[countPrev];

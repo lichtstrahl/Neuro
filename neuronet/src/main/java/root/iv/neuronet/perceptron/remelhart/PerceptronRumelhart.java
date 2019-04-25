@@ -6,30 +6,26 @@ import java.util.Locale;
 import root.iv.neuronet.Number;
 
 public class PerceptronRumelhart {
-    private Neuron[] neurons;
+    private Layer layerR;
     private List<Number> originals;         // Образцы
 
-    public PerceptronRumelhart(int count, int sizeA) {
-        neurons = new Neuron[count];
-        for (int i = 0; i < count; i++) {
-            neurons[i] = new Neuron(sizeA);
-        }
+    public PerceptronRumelhart(int sizeR, int sizeA) {
+        layerR = new Layer(sizeR, sizeA);
     }
 
     public void setInput(int[] input) {
-        for (Neuron n : neurons)
-            n.setInput(input);
+        layerR.setInput(input);
     }
 
     public int getOutput(StringBuilder logger) {
-        double[] out = new double[neurons.length];
+        double[] out = new double[layerR.size()];
 
         int iMax = 0;
         logger.append("Out: ");
-        for (int i = 0; i < neurons.length; i++) {
-            out[i] = neurons[i].calculateOutput();
-            if (out[i] > out[iMax])  iMax = i;
-            logger.append(String.format(Locale.ENGLISH, "%4.1f", out[i]));
+        for (int r = 0; r < layerR.size(); r++) {
+            out[r] = layerR.calculateOutput(r);
+            if (out[r] > out[iMax])  iMax = r;
+            logger.append(String.format(Locale.ENGLISH, "%4.1f", out[r]));
         }
         logger.append("\n");
 
@@ -44,9 +40,9 @@ public class PerceptronRumelhart {
     public double updateWeights(double[] goodOutput) {
         double globalDelta = 0.0;
 
-        for (int i = 0; i < neurons.length; i++) {
-            double delta = goodOutput[i] - neurons[i].calculateOutput();
-            neurons[i].updateWeights(delta);
+        for (int r = 0; r < layerR.size(); r++) {
+            double delta = goodOutput[r] - layerR.calculateOutput(r);
+            layerR.updateWeights(r, delta);
             globalDelta += delta;
         }
 
