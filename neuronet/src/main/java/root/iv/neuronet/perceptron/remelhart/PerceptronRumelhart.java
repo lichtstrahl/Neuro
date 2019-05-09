@@ -1,8 +1,14 @@
 package root.iv.neuronet.perceptron.remelhart;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import root.iv.neuronet.Logger;
+import root.iv.neuronet.perceptron.ArrayUtils;
+import root.iv.neuronet.perceptron.cmd.FillRandomCommand;
 import root.iv.neuronet.perceptron.rosenblat.Number;
 
 public class PerceptronRumelhart {
@@ -14,26 +20,23 @@ public class PerceptronRumelhart {
 
     public PerceptronRumelhart(int sizeS, int sizeA, int sizeR) {
         layerS = new SensorsLayer();
-        layerA = new Layer(sizeA, sizeS);
-        layerR = new Layer(sizeR, sizeA);
+        layerA = new Layer(sizeA, sizeS, new FillRandomCommand());
+        layerR = new Layer(sizeR, sizeA, new FillRandomCommand());
     }
 
-    public void setInput(int[] input) {
+    public int getOutput(int[] input, StringBuilder logger) {
+        // Задаем S-слой
         layerS.setValues(input);
-    }
-
-    public int getOutput(StringBuilder logger) {
-        layerR.setInput(layerS.getValues());
-
-        // Подсчет на R-слое
-        double[] out = new double[layerR.size()];
+        // Отправка сигнала с S-слоая на скрытый A-слой
+        layerA.receiveSignal(layerS.getValues());
+        // Отправка сигнала с A-слоя на R-слой
+        layerR.receiveSignal(layerA.getValues());
 
         int iMax = 0;
         logger.append("Out: ");
         for (int r = 0; r < layerR.size(); r++) {
-            out[r] = layerR.calculateOutput(r);
-            if (out[r] > out[iMax])  iMax = r;
-            logger.append(String.format(Locale.ENGLISH, "%4.1f", out[r]));
+            if (layerR.getValue(r) > layerR.getValue(iMax))  iMax = r;
+            logger.append(String.format(Locale.ENGLISH, "%4.1f", layerR.getValue(r)));
         }
         logger.append("\n");
 
@@ -44,23 +47,51 @@ public class PerceptronRumelhart {
      *
      * @param minDelta - Минимально изменение, которого необходимо достич
      * @param logger - логи
-     * Идеальный образец имеет 1.0 на выходе только у одного элемента
+     * идеальный образец имеет 1.0 на выходе только у одного элемента
      */
-    public void train(double minDelta, StringBuilder logger) {
-        logger.append("Step delta: ");
-        double absoluteStepData = Double.MAX_VALUE;                 // Изменения на данном этапе
+    public void train(double minDelta, Logger logger) {
+        double absoluteStepData = Double.MAX_VALUE;                 // изменения на данном этапе
 
-        for (long i = 0; absoluteStepData > minDelta; i++) {
+        List<Number> shufleOriginal = new LinkedList<>(originals);
+        int countTrue = 0;
+        for (long i = 0; countTrue < 10; i++) {
             absoluteStepData = 0.0;
-            for (int n = 0; n < originals.size(); n++) {
-                setInput(originals.get(n).getPixs());
-                layerR.setInput(layerS.getValues());
-                absoluteStepData += Math.abs(layerR.updateWeights(originals.get(n).goodOutput(originals.size())));
+            Collections.shuffle(shufleOriginal);
+            for (int n = 0; n < shufleOriginal.size(); n++) {
+                int[] pattern = shufleOriginal.get(n).getPixs();
+                // Задаем значение S-слоя
+                layerS.setValues(pattern);
+                // Отправка сигнала с S-слоая на скрытый A-слой
+                layerA.receiveSignal(layerS.getValues());
+                // Отправка сигнала с A-слоя на R-слой
+                layerR.receiveSignal(layerA.getValues());
+
+                // Обратное распространение ошибки у R-слоя (обучение A-R связей)
+                layerR.backPropagation(layerA.getValues(), shufleOriginal.get(n).goodOutput(shufleOriginal.size()));
+                // У всех R-элементов теперь есть значения ошибки. Подсчитаем вектор ошибок для отправки на A-слой
+                double[] errorR = layerR.calculateWeightsError(layerA.size());
+                // Полученные взвешенные ошибки распространяем на А (обучение S-A связей)
+                layerA.backPropagationHidden(layerS.getValues(), errorR);
+
+                double stepError = ArrayUtils.sumABS(errorR);
+                logger.log(String.format(Locale.ENGLISH, "Learning: %d\n", shufleOriginal.get(n).getValue()));
+                logger.log(String.format(Locale.ENGLISH, "Step error: %5.2f\n", stepError));
+                StringBuilder l = new StringBuilder();
+                int r = getOutput(pattern, l);
+                logger.log(l.toString());
+
+                if (originals.get(r).getValue() == shufleOriginal.get(n).getValue() && stepError < 1.0)
+                    countTrue++;
+                else
+                    countTrue = 0;
+                logger.log("CountTrue: " + countTrue);
+                logger.log(" ");
+
             }
-            logger.append(String.format(Locale.ENGLISH, "%5.2f", absoluteStepData));
+//            logger.append(String.format(Locale.ENGLISH, "%5.2f", absoluteStepData));
         }
 
-        logger.append("\n");
+        logger.log("\n");
     }
 
     public void setOriginalNumbers(List<Number> numbers) {

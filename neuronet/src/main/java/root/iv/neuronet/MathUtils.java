@@ -25,7 +25,20 @@ public class MathUtils {
         return result;
     }
 
+    /**
+     * Чем больше значение, тем ближе к 1
+     * Чем меньше значение, тем ближе к -1
+     * @param arg
+     * @return
+     */
     public static double sigmoid(double arg) {
         return (1 / (1 + Math.exp(-arg)));
+    }
+
+    /**
+     * Производная активационной функции
+     */
+    public static double sigmoid_(double arg) {
+        return Math.exp(-arg) / Math.pow(Math.exp(-arg) + 1, 2);
     }
 }

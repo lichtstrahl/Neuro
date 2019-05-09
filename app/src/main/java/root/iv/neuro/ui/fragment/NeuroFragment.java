@@ -11,6 +11,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.junit.Assert;
+
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
@@ -22,6 +24,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.Completable;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
@@ -59,6 +62,7 @@ public class NeuroFragment extends Fragment {
     protected RecyclerView listNumbers;
     private NumberAdapter numberAdapter;
     private int currentPattern = -1;
+    @Nullable
     private CompositeDisposable disposable;
     private PerceptronRumelhart perceptron;
 
@@ -67,8 +71,6 @@ public class NeuroFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_neuronet, container, false);
         ButterKnife.bind(this, view);
-
-        disposable = new CompositeDisposable();
 
         numberAdapter = new NumberAdapter(getLayoutInflater(), v -> {
             int t = listNumbers.getChildAdapterPosition(v);
@@ -119,40 +121,38 @@ public class NeuroFragment extends Fragment {
     void clickCheck() {
         Bitmap scaled = getPreview();
         StringBuilder logger = new StringBuilder();
-        perceptron.setInput(BitmapConverter.createNumber(scaled, 0).getPixs());
-        int answer = perceptron.getOutput(logger);
+        int answer = perceptron.getOutput(BitmapConverter.createNumber(scaled, 0).getPixs(), logger);
         Toast.makeText(this.getContext(), String.format(Locale.ENGLISH, "Это число: " + numberAdapter.getNumbers().get(answer).getValue()), Toast.LENGTH_SHORT).show();
         App.logI(logger.toString());
     }
 
     @OnClick(R.id.buttonTrain)
     void clickTrain() {
+        disposable = new CompositeDisposable();
         progressBar.setVisibility(View.VISIBLE);
-        Disposable d = Completable.fromCallable(() -> {
-
-            perceptron = new PerceptronRumelhart(SIZE_PREVIEW*SIZE_PREVIEW, SIZE_PREVIEW*SIZE_PREVIEW, numberAdapter.getItemCount());
-            perceptron.setOriginalNumbers(numberAdapter.getNumbers());
-            StringBuilder log = new StringBuilder();
-            perceptron.train(5e-3, log);
-            App.logI(log.toString());
-            return true;
-        })
+        disposable.add(
+                Completable.fromCallable(() -> {
+                    perceptron = new PerceptronRumelhart(SIZE_PREVIEW*SIZE_PREVIEW, SIZE_PREVIEW*SIZE_PREVIEW, numberAdapter.getItemCount());
+                    perceptron.setOriginalNumbers(numberAdapter.getNumbers());
+                    StringBuilder log = new StringBuilder();
+                    perceptron.train(5e-3, App::logI);
+//                    App.logI(log.toString());
+                    return 0;
+                })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        () -> {
-                            Toast.makeText(this.getContext(), "Обучение Закончено", Toast.LENGTH_SHORT).show() ;
-//                            viewCurrentPattern.setText(String.format(Locale.ENGLISH, "Количество живых нйронов: %d", perceptron.countLiveA()));
-                            progressBar.setVisibility(View.GONE);
-                        }
-                );
-
-        disposable.add(d);
+                .subscribe(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(this.getContext(), "Обучение Закончено", Toast.LENGTH_SHORT).show() ;
+                })
+        );
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        Assert.assertNotNull(disposable);
+        progressBar.setVisibility(View.GONE);
         disposable.dispose();
     }
 
