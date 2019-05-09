@@ -14,6 +14,7 @@ import android.widget.Toast;
 import org.junit.Assert;
 
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,10 +25,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.Completable;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import root.iv.neuro.R;
 import root.iv.neuro.app.App;
@@ -41,6 +40,7 @@ import root.iv.neuronet.perceptron.rosenblat.Configuration;
 
 public class NeuroFragment extends Fragment {
     private static final int SIZE_PREVIEW = 10;
+    private static final int NEURON_COUNT = SIZE_PREVIEW*SIZE_PREVIEW;
     private static final Configuration configurationPointToPoint = new Configuration(
             1,
             SIZE_PREVIEW*SIZE_PREVIEW/10,
@@ -65,6 +65,7 @@ public class NeuroFragment extends Fragment {
     @Nullable
     private CompositeDisposable disposable;
     private PerceptronRumelhart perceptron;
+    private int countLive;
 
     @Nullable
     @Override
@@ -132,18 +133,18 @@ public class NeuroFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
         disposable.add(
                 Completable.fromCallable(() -> {
-                    perceptron = new PerceptronRumelhart(SIZE_PREVIEW*SIZE_PREVIEW, SIZE_PREVIEW*SIZE_PREVIEW, numberAdapter.getItemCount());
+                    perceptron = new PerceptronRumelhart(NEURON_COUNT, NEURON_COUNT, numberAdapter.getItemCount());
                     perceptron.setOriginalNumbers(numberAdapter.getNumbers());
                     StringBuilder log = new StringBuilder();
-                    perceptron.train(5e-3, 1.0, App::logI);
-//                    App.logI(log.toString());
-                    return 0;
+                    countLive = perceptron.train(1.0, App::logI);
+                    return countLive;
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this.getContext(), "Обучение Закончено", Toast.LENGTH_SHORT).show() ;
+                    Toast.makeText(this.getContext(), "Обучение Закончено", Toast.LENGTH_SHORT).show();
+                    viewCurrentPattern.setText(String.format(Locale.ENGLISH, "Живых нейронов: %d из %d", countLive, NEURON_COUNT));
                 })
         );
     }

@@ -7,15 +7,18 @@ import root.iv.neuronet.perceptron.cmd.Command;
 public class Neuron {
     /** Скорость обучения */
     private static final double LEARNING_RATIO = 0.02;
+    private static final double EPS = 0.1;
     /** Порог */
     private static final int BIAS = 1;
     private double biasWeights;
     /** Веса связей с предыдущим слоем */
     private double[] weights;
-    /** Активировался нейрон или нет */
-    private boolean changeState;
     /** Значение нейрона **/
     private double value;
+    /** Начальное значение */
+    private Double beginValue = null;
+    /** Является ли нейрон константным */
+    private boolean constant = true;
     /** Ошибка. Отклонение от образцового значения */
     private double error;
 
@@ -28,17 +31,7 @@ public class Neuron {
         cmdFill.execute();
     }
 
-    public double calculateOutput(double[] input) {
-        double sum = 0;
 
-        for (int i = 0; i < input.length; i++) {
-            sum += input[i]*weights[i];
-        }
-        sum += BIAS * biasWeights;
-
-        value = MathUtils.sigmoid(sum);
-        return value;
-    }
 
     /**
      * Считаем значение нейрона, в зависимости от предыдущего слоя
@@ -46,8 +39,13 @@ public class Neuron {
      */
 
     public void activate(double[] input) {
-        double sum = calulateWeightSum(input);
+        double sum = calculateWeightsSum(input);
         value = MathUtils.sigmoid(sum);
+
+        if (beginValue == null)
+            beginValue = value;
+        else
+            constant = constant && Math.abs(beginValue-value) < EPS;
     }
 
     // Подсчет взвешенной суммы
@@ -57,7 +55,7 @@ public class Neuron {
      * Взвешенная сумма
      * @param input
      */
-    private double calulateWeightSum(double[] input) {
+    private double calculateWeightsSum(double[] input) {
         if (input.length != weights.length) throw new IllegalStateException("Не совпадают длины input и weights");
         double sum = BIAS*biasWeights;
         for (int i = 0; i < input.length; i++) {
@@ -76,7 +74,7 @@ public class Neuron {
      * @param input Входные значения (которые были до этого)
      */
     public void backPropagation(double[] input, double original) {
-        double sum = calculateOutput(input);
+        double sum = calculateWeightsSum(input);
         error = (original - value)*MathUtils.sigmoid_(sum);
 
         for (int i = 0; i < input.length; i++) {
@@ -95,7 +93,7 @@ public class Neuron {
      * @param er Значение ошибки, распространенной со следующего слоя
      */
     public void backPropagationHidden(double[] input, double er) {
-        double sum = calulateWeightSum(input);
+        double sum = calculateWeightsSum(input);
         error = er*MathUtils.sigmoid_(sum);
 
         for (int i = 0; i < input.length; i++) {
@@ -117,5 +115,17 @@ public class Neuron {
 
     public double getWeights(int indexPrev) {
         return weights[indexPrev];
+    }
+
+    /**
+     * Сброс начального значения нейрона
+     */
+    public void reset() {
+        beginValue = null;
+        constant = true;
+    }
+
+    public boolean isConstant() {
+        return constant;
     }
 }

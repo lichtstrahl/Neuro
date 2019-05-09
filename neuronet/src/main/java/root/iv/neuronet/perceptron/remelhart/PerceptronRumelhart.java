@@ -59,38 +59,44 @@ public class PerceptronRumelhart {
     }
 
     /**
-     * @param minDelta - Минимально изменение, которого необходимо достич
      * @param logger - логи
+     * @return Количество живых нейронов в A-слое
      * идеальный образец имеет 1.0 на выходе только у одного элемента
      */
-    public void train(double minDelta, double error, Logger logger) {
+    public int train(double error, Logger logger) {
 
         List<Number> shufleOriginal = new LinkedList<>(originals);
         int countTrue = 0;
         for (long i = 0; countTrue < originals.size()*2; i++) {
             Collections.shuffle(shufleOriginal);
+            layerA.reset();
             for (int n = 0; n < shufleOriginal.size(); n++) {
                 int[] pattern = shufleOriginal.get(n).getPixs();
                 forwardSignal(pattern);
                 double stepError = backPropagationError(shufleOriginal.get(n).goodOutput(shufleOriginal.size()));
 
-                logger.log(String.format(Locale.ENGLISH, "Learning: %d\n", shufleOriginal.get(n).getValue()));
-                logger.log(String.format(Locale.ENGLISH, "Step error: %5.2f\n", stepError));
                 StringBuilder l = new StringBuilder();
                 int r = getOutput(pattern, l);
-                logger.log(l.toString());
 
-                if (originals.get(r).getValue() == shufleOriginal.get(n).getValue() && stepError < 1.0)
+                if (originals.get(r).getValue() == shufleOriginal.get(n).getValue() && stepError < error)
                     countTrue++;
                 else
                     countTrue = 0;
+
+                // Logging
+                logger.log(String.format(Locale.ENGLISH, "Learning: %d\n", shufleOriginal.get(n).getValue()));
+                logger.log(String.format(Locale.ENGLISH, "Step error: %5.2f\n", stepError));
+                logger.log(l.toString());
                 logger.log("CountTrue: " + countTrue);
                 logger.log(" ");
-
             }
+            logger.log("Count constant: " + layerA.countConstant());
+            layerA.deleteConstantNeuron();
+            logger.log(" ");
         }
 
         logger.log("\n");
+        return layerA.countNotNull();
     }
 
     public void setOriginalNumbers(List<Number> numbers) {

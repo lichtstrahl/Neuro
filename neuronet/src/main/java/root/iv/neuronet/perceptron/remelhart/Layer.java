@@ -19,13 +19,27 @@ public class Layer {
 
     public double[] getValues() {
         double[] out = new double[size()];
-
         for (int i = 0; i < layer.length; i++)
-            out[i] = layer[i].getValue();
-
+            if (layer[i] != null) {
+                out[i] = layer[i].getValue();
+            } else {
+                out[i] = 0;
+            }
         return out;
     }
 
+    public int countNotNull() {
+        int c = 0;
+        for (Neuron n : layer)
+            c += n != null ? 1 : 0;
+        return c;
+    }
+
+    /**
+     * Используется ТОЛЬКО на R-слое
+     * @param index
+     * @return
+     */
     public double getValue(int index) {
         return layer[index].getValue();
     }
@@ -33,11 +47,11 @@ public class Layer {
     /**
      * Слой принимает сигналы с предыдущего
      * Каждый нейрон высчитывает свое значение
-     * @param values Значения нейронов на предыдущем слое
+     * @param input Значения нейронов на предыдущем слое
      */
-    public void receiveSignal(double[] values) {
+    public void receiveSignal(double[] input) {
         for (Neuron n : layer)
-            n.activate(values);
+            if (n != null) n.activate(input);
     }
 
     /**
@@ -49,7 +63,7 @@ public class Layer {
      */
     public void backPropagation(double[] input, double[] original) {
         for (int n = 0; n < layer.length; n++)
-            layer[n].backPropagation(input, original[n]);
+            if (layer[n] != null) layer[n].backPropagation(input, original[n]);
     }
 
     /**
@@ -58,7 +72,7 @@ public class Layer {
      */
     public void backPropagationHidden(double[] input, double[] errors) {
         for (int n = 0; n < layer.length; n++) {
-            layer[n].backPropagationHidden(input, errors[n]);
+            if (layer[n] != null) layer[n].backPropagationHidden(input, errors[n]);
         }
     }
 
@@ -72,6 +86,7 @@ public class Layer {
         for (int indexPrev = 0; indexPrev < sizePrev; indexPrev++) {
             double sum = 0.0;
             for (int k = 0; k < layer.length; k++) {
+                if (layer[k] == null) continue;
                 double error = layer[k].getError();
                 double w = layer[k].getWeights(indexPrev);
                 sum += error * w;
@@ -80,5 +95,27 @@ public class Layer {
         }
 
         return errors;
+    }
+
+    public void deleteConstantNeuron() {
+        for (int n = 0; n < layer.length; n++)
+            if (layer[n] != null && layer[n].isConstant()) layer[n] = null;
+    }
+
+    /**
+     * Сброс начальных значений у нейронов
+     */
+    public void reset() {
+        for (Neuron n : layer)
+            if (n != null) n.reset();
+    }
+
+    public int countConstant() {
+        int count = 0;
+
+        for (Neuron n : layer)
+            count += (n != null && n.isConstant()) ? 1 : 0;
+
+        return count;
     }
 }
