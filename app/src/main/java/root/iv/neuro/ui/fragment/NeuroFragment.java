@@ -135,7 +135,7 @@ public class NeuroFragment extends Fragment {
                     perceptron = new PerceptronRumelhart(SIZE_PREVIEW*SIZE_PREVIEW, SIZE_PREVIEW*SIZE_PREVIEW, numberAdapter.getItemCount());
                     perceptron.setOriginalNumbers(numberAdapter.getNumbers());
                     StringBuilder log = new StringBuilder();
-                    perceptron.train(5e-3, App::logI);
+                    perceptron.train(5e-3, 1.0, App::logI);
 //                    App.logI(log.toString());
                     return 0;
                 })

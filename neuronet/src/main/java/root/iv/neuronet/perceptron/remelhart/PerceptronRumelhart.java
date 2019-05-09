@@ -49,13 +49,11 @@ public class PerceptronRumelhart {
      * @param logger - логи
      * идеальный образец имеет 1.0 на выходе только у одного элемента
      */
-    public void train(double minDelta, Logger logger) {
-        double absoluteStepData = Double.MAX_VALUE;                 // изменения на данном этапе
+    public void train(double minDelta, double error, Logger logger) {
 
         List<Number> shufleOriginal = new LinkedList<>(originals);
         int countTrue = 0;
-        for (long i = 0; countTrue < 10; i++) {
-            absoluteStepData = 0.0;
+        for (long i = 0; countTrue < originals.size()*2; i++) {
             Collections.shuffle(shufleOriginal);
             for (int n = 0; n < shufleOriginal.size(); n++) {
                 int[] pattern = shufleOriginal.get(n).getPixs();
@@ -88,7 +86,6 @@ public class PerceptronRumelhart {
                 logger.log(" ");
 
             }
-//            logger.append(String.format(Locale.ENGLISH, "%5.2f", absoluteStepData));
         }
 
         logger.log("\n");

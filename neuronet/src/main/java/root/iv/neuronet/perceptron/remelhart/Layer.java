@@ -4,7 +4,6 @@ import root.iv.neuronet.perceptron.cmd.Command;
 
 public class Layer {
     private Neuron[] layer;
-    private double[] input;
 
     public Layer(int size, int sizePrev, Command<double[]> cmdFill) {
         layer = new Neuron[size];
@@ -14,33 +13,8 @@ public class Layer {
         }
     }
 
-    public void setInput(double[] input) {
-        this.input = input;
-    }
-
     public int size() {
         return layer.length;
-    }
-
-    public double calculateOutput(int index) {
-        return layer[index].calculateOutput(input);
-    }
-
-    /**
-     * Обновление весов, собственно обучение
-     * @param goodOutput Образец, к которому должна стремиться сеть
-     * @return Суммарное изменение весов, которое было проведено на данном этапе
-     */
-    public double updateWeights(double[] goodOutput) {
-        double globalDelta = 0.0;
-
-        for (int r = 0; r < layer.length; r++) {
-            double delta = goodOutput[r] - layer[r].calculateOutput(input);
-            layer[r].updateWeights(input, delta);
-            globalDelta += Math.abs(delta);
-        }
-
-        return globalDelta;
     }
 
     public double[] getValues() {
@@ -54,15 +28,6 @@ public class Layer {
 
     public double getValue(int index) {
         return layer[index].getValue();
-    }
-
-    public double[] getErrors() {
-        double[] errors = new double[size()];
-
-        for (int i = 0; i < errors.length; i++) {
-            errors[i] = layer[i].getError();
-        }
-        return errors;
     }
 
     /**

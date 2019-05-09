@@ -67,18 +67,6 @@ public class Neuron {
     }
 
     /**
-     * Корректировка весов
-     * @param delta
-     */
-    public void updateWeights(double[] input, double delta) {
-        for (int i = 0; i < weights.length; i++) {
-            weights[i] += LEARNING_RATIO * delta * input[i];
-        }
-
-        biasWeights += LEARNING_RATIO * delta * BIAS;
-    }
-
-    /**
      * Снова находим сумму, соответствующую данным входам
      * Умножаем ошибку на производную функции активации
      * Перебирам значения каждого нейрона с пред. слоя
