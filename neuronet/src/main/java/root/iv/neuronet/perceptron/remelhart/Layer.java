@@ -81,4 +81,12 @@ public class Layer {
 
         return errors;
     }
+
+    /**
+     * Сброс начальных значений у нейронов
+     */
+    public void reset() {
+        for (Neuron n : layer)
+            n.reset();
+    }
 }

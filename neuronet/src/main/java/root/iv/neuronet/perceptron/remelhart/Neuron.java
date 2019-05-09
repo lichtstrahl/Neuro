@@ -7,13 +7,17 @@ import root.iv.neuronet.perceptron.cmd.Command;
 public class Neuron {
     /** Скорость обучения */
     private static final double LEARNING_RATIO = 0.02;
+    /** Окрестность, в радиусе которой значения нейрона будут считаться постоянными */
+    private static final double EPS = 0.2;
     /** Порог */
     private static final int BIAS = 1;
     private double biasWeights;
     /** Веса связей с предыдущим слоем */
     private double[] weights;
-    /** Активировался нейрон или нет */
-    private boolean changeState;
+    /** Начальное значение нейрона */
+    private Double beginValue = null;
+    /** Нейрон - константа */
+    private boolean constant = true;
     /** Значение нейрона **/
     private double value;
     /** Ошибка. Отклонение от образцового значения */
@@ -37,6 +41,11 @@ public class Neuron {
         sum += BIAS * biasWeights;
 
         value = MathUtils.sigmoid(sum);
+        if (beginValue == null) {
+            beginValue = value;
+        } else {
+            constant = constant && Math.abs(value-beginValue) < EPS;    // Если новое значение отклоняется от начального, то нейрон изменяется
+        }
         return value;
     }
 
@@ -117,5 +126,16 @@ public class Neuron {
 
     public double getWeights(int indexPrev) {
         return weights[indexPrev];
+    }
+
+    /**
+     * Сброс начального значения нейрона.
+     */
+    public void reset() {
+        beginValue = null;
+    }
+
+    public boolean isConstant() {
+        return constant;
     }
 }
