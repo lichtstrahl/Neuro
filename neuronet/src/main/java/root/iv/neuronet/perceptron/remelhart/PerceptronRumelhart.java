@@ -25,12 +25,7 @@ public class PerceptronRumelhart {
     }
 
     public int getOutput(int[] input, StringBuilder logger) {
-        // Задаем S-слой
-        layerS.setValues(input);
-        // Отправка сигнала с S-слоая на скрытый A-слой
-        layerA.receiveSignal(layerS.getValues());
-        // Отправка сигнала с A-слоя на R-слой
-        layerR.receiveSignal(layerA.getValues());
+        forwardSignal(input);
 
         int iMax = 0;
         logger.append("Out: ");
@@ -43,8 +38,27 @@ public class PerceptronRumelhart {
         return iMax;
     }
 
+    private void forwardSignal(int[] pattern) {
+        // Задаем значение S-слоя
+        layerS.setValues(pattern);
+        // Отправка сигнала с S-слоая на скрытый A-слой
+        layerA.receiveSignal(layerS.getValues());
+        // Отправка сигнала с A-слоя на R-слой
+        layerR.receiveSignal(layerA.getValues());
+    }
+
+    private double backPropagationError(double[] original) {
+        // Обратное распространение ошибки у R-слоя (обучение A-R связей)
+        layerR.backPropagation(layerA.getValues(), original);
+        // У всех R-элементов теперь есть значения ошибки. Подсчитаем вектор ошибок для отправки на A-слой
+        double[] errorR = layerR.calculateWeightsError(layerA.size());
+        // Полученные взвешенные ошибки распространяем на А (обучение S-A связей)
+        layerA.backPropagationHidden(layerS.getValues(), errorR);
+
+        return ArrayUtils.sumABS(errorR);
+    }
+
     /**
-     *
      * @param minDelta - Минимально изменение, которого необходимо достич
      * @param logger - логи
      * идеальный образец имеет 1.0 на выходе только у одного элемента
@@ -57,21 +71,9 @@ public class PerceptronRumelhart {
             Collections.shuffle(shufleOriginal);
             for (int n = 0; n < shufleOriginal.size(); n++) {
                 int[] pattern = shufleOriginal.get(n).getPixs();
-                // Задаем значение S-слоя
-                layerS.setValues(pattern);
-                // Отправка сигнала с S-слоая на скрытый A-слой
-                layerA.receiveSignal(layerS.getValues());
-                // Отправка сигнала с A-слоя на R-слой
-                layerR.receiveSignal(layerA.getValues());
+                forwardSignal(pattern);
+                double stepError = backPropagationError(shufleOriginal.get(n).goodOutput(shufleOriginal.size()));
 
-                // Обратное распространение ошибки у R-слоя (обучение A-R связей)
-                layerR.backPropagation(layerA.getValues(), shufleOriginal.get(n).goodOutput(shufleOriginal.size()));
-                // У всех R-элементов теперь есть значения ошибки. Подсчитаем вектор ошибок для отправки на A-слой
-                double[] errorR = layerR.calculateWeightsError(layerA.size());
-                // Полученные взвешенные ошибки распространяем на А (обучение S-A связей)
-                layerA.backPropagationHidden(layerS.getValues(), errorR);
-
-                double stepError = ArrayUtils.sumABS(errorR);
                 logger.log(String.format(Locale.ENGLISH, "Learning: %d\n", shufleOriginal.get(n).getValue()));
                 logger.log(String.format(Locale.ENGLISH, "Step error: %5.2f\n", stepError));
                 StringBuilder l = new StringBuilder();
