@@ -1,10 +1,11 @@
 package root.iv.neuronet.perceptron.remelhart;
 
+import java.util.Locale;
+
 import root.iv.neuronet.perceptron.cmd.Command;
 
 public class Layer {
     private Neuron[] layer;
-
     public Layer(int size, int sizePrev, Command<double[]> cmdFill) {
         layer = new Neuron[size];
 
@@ -117,5 +118,35 @@ public class Layer {
             count += (n != null && n.isConstant()) ? 1 : 0;
 
         return count;
+    }
+
+    public void searchCopy() {
+        for (int i = 0; i < layer.length; i++) {
+            Neuron a = layer[i];
+            if (a != null) {
+
+                for (int copy = 0; copy < a.getCountCopy(); copy++) {
+                    int indexPotentialCopy = a.getIndexCopy(copy);
+                    Neuron potentialCopy = layer[indexPotentialCopy];
+                    // Если значение copy не совпадает со значением a, то это не его дублирующий элемент
+                    if (copy != i && a != null && potentialCopy != null && !a.equals(potentialCopy)) {
+                        a.markToRemoveCopy(copy);
+                    }
+                }
+
+                a.removeAllCopy();
+            }
+        }
+    }
+
+    public void logCopy(StringBuilder log) {
+        int sum = 0;
+        for (Neuron n : layer) {
+            if (n == null) continue;
+            int c = n.getCountCopy();
+            log.append(String.format(Locale.ENGLISH, "%5d", c));
+            sum += c;
+        }
+        log.append("\nSum: " + sum + "\n");
     }
 }

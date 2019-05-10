@@ -25,7 +25,7 @@ public class PerceptronRumelhart {
     }
 
     public int getOutput(int[] input, StringBuilder logger) {
-        forwardSignal(input);
+        forwardSignal(input, false);
 
         int iMax = 0;
         logger.append("Out: ");
@@ -38,13 +38,16 @@ public class PerceptronRumelhart {
         return iMax;
     }
 
-    private void forwardSignal(int[] pattern) {
+    private void forwardSignal(int[] pattern, boolean searchCopy) {
         // Задаем значение S-слоя
         layerS.setValues(pattern);
         // Отправка сигнала с S-слоая на скрытый A-слой
         layerA.receiveSignal(layerS.getValues());
         // Отправка сигнала с A-слоя на R-слой
         layerR.receiveSignal(layerA.getValues());
+
+        // Посчитали. У А-элементов есть какие-то значения.
+        if (searchCopy) layerA.searchCopy();
     }
 
     private double backPropagationError(double[] original) {
@@ -72,7 +75,7 @@ public class PerceptronRumelhart {
             layerA.reset();
             for (int n = 0; n < shufleOriginal.size(); n++) {
                 int[] pattern = shufleOriginal.get(n).getPixs();
-                forwardSignal(pattern);
+                forwardSignal(pattern, false);
                 double stepError = backPropagationError(shufleOriginal.get(n).goodOutput(shufleOriginal.size()));
 
                 StringBuilder l = new StringBuilder();
@@ -84,18 +87,21 @@ public class PerceptronRumelhart {
                     countTrue = 0;
 
                 // Logging
-                logger.log(String.format(Locale.ENGLISH, "Learning: %d\n", shufleOriginal.get(n).getValue()));
-                logger.log(String.format(Locale.ENGLISH, "Step error: %5.2f\n", stepError));
+                logger.log(String.format(Locale.ENGLISH, "Learning: %d%n", shufleOriginal.get(n).getValue()));
+                logger.log(String.format(Locale.ENGLISH, "Step error: %5.2f%n", stepError));
                 logger.log(l.toString());
                 logger.log("CountTrue: " + countTrue);
                 logger.log(" ");
             }
             logger.log("Count constant: " + layerA.countConstant());
+            StringBuilder l = new StringBuilder();
+            layerA.logCopy(l);
+            logger.log(l.toString());
             layerA.deleteConstantNeuron();
             logger.log(" ");
         }
 
-        logger.log("\n");
+        logger.log(" ");
         return layerA.countNotNull();
     }
 

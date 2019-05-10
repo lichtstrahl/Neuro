@@ -1,13 +1,16 @@
 package root.iv.neuronet.perceptron.remelhart;
 
 
+import java.util.LinkedList;
+import java.util.List;
+
 import root.iv.neuronet.MathUtils;
 import root.iv.neuronet.perceptron.cmd.Command;
 
 public class Neuron {
     /** Скорость обучения */
     private static final double LEARNING_RATIO = 0.02;
-    private static final double EPS = 0.1;
+    private static final double EPS = 1e-1;
     /** Порог */
     private static final int BIAS = 1;
     private double biasWeights;
@@ -21,24 +24,26 @@ public class Neuron {
     private boolean constant = true;
     /** Ошибка. Отклонение от образцового значения */
     private double error;
+    /** Список индексов потенциальных копий */
+    private List<Integer> copy;
 
-
-    public Neuron(int countPrev, Command<double[]> cmdFill) {
+    Neuron(int countPrev, Command<double[]> cmdFill) {
         this.weights = new double[countPrev];
         this.biasWeights = Math.random();
 
         cmdFill.setArgumet(weights);
         cmdFill.execute();
+
+        copy = new LinkedList<>();
+        for (int i = 0; i < countPrev; i++)
+            copy.add(i);
     }
-
-
 
     /**
      * Считаем значение нейрона, в зависимости от предыдущего слоя
      * Применяем активационную функцию, получая значение данного нейрона
      */
-
-    public void activate(double[] input) {
+    void activate(double[] input) {
         double sum = calculateWeightsSum(input);
         value = MathUtils.sigmoid(sum);
 
@@ -48,12 +53,10 @@ public class Neuron {
             constant = constant && Math.abs(beginValue-value) < EPS;
     }
 
-    // Подсчет взвешенной суммы
-
     /**
      * значально сумма содержит порог
      * Взвешенная сумма
-     * @param input
+     * @param input Вход с предыдущего слоя
      */
     private double calculateWeightsSum(double[] input) {
         if (input.length != weights.length) throw new IllegalStateException("Не совпадают длины input и weights");
@@ -73,7 +76,7 @@ public class Neuron {
      * @param original Образцовое значение, которое он должен был принять
      * @param input Входные значения (которые были до этого)
      */
-    public void backPropagation(double[] input, double original) {
+    void backPropagation(double[] input, double original) {
         double sum = calculateWeightsSum(input);
         error = (original - value)*MathUtils.sigmoid_(sum);
 
@@ -92,7 +95,7 @@ public class Neuron {
      * @param input
      * @param er Значение ошибки, распространенной со следующего слоя
      */
-    public void backPropagationHidden(double[] input, double er) {
+    void backPropagationHidden(double[] input, double er) {
         double sum = calculateWeightsSum(input);
         error = er*MathUtils.sigmoid_(sum);
 
@@ -105,27 +108,62 @@ public class Neuron {
         biasWeights += delta0;
     }
 
-    public double getValue() {
+    double getValue() {
         return value;
     }
 
-    public double getError() {
+    double getError() {
         return error;
     }
 
-    public double getWeights(int indexPrev) {
+    double getWeights(int indexPrev) {
         return weights[indexPrev];
+    }
+
+    int getCountCopy() {
+        return copy.size();
+    }
+
+    int getIndexCopy(int i) {
+        return copy.get(i);
+    }
+
+    /**
+     * Пометить копию к удалению
+     * @param index
+     */
+    void markToRemoveCopy(int index) {
+        copy.set(index, null);
+    }
+
+    /**
+     * Удаление помеченных копий
+     */
+    void removeAllCopy() {
+        List<Integer> newCopy = new LinkedList<>();
+
+        for (Integer integer : copy) {
+            if (integer != null) {
+                newCopy.add(integer);
+            }
+        }
+
+        copy = newCopy;
     }
 
     /**
      * Сброс начального значения нейрона
      */
-    public void reset() {
+    void reset() {
         beginValue = null;
         constant = true;
     }
 
-    public boolean isConstant() {
+    boolean isConstant() {
         return constant;
+    }
+
+    boolean equals(Neuron o) {
+        return Math.abs(value - o.value) < EPS;
     }
 }
