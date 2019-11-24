@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,9 +20,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -60,7 +67,14 @@ public class NeuroFragment extends Fragment {
     protected ProgressBar progressBar;
     @BindView(R.id.listNumbers)
     protected RecyclerView listNumbers;
+    @BindView(R.id.appbar)
+    protected AppBarLayout appBarLayout;
+    @BindView(R.id.appbar_shadow)
+    protected View appBarShadow;
+    @BindView(R.id.buttonCheck)
+    protected ImageButton buttonCkeck;
     private NumberAdapter numberAdapter;
+
     private int currentPattern = -1;
     @Nullable
     private CompositeDisposable disposable;
@@ -82,6 +96,15 @@ public class NeuroFragment extends Fragment {
         listNumbers.setAdapter(numberAdapter);
         listNumbers.setLayoutManager(new LinearLayoutManager(this.getContext(), RecyclerView.HORIZONTAL, false));
         updateCurrentPattern();
+
+        appBarLayout.addOnOffsetChangedListener((appbar, offset) -> {
+            int range = appbar.getTotalScrollRange();
+            float pr = -offset/(float)range; // Сколько процентов дистанции пройдено
+            appBarShadow.setAlpha(pr*pr*pr*pr); // Замена x, на x*x
+            App.logI(String.format(Locale.ENGLISH, "%8.3f", pr));
+        });
+
+        buttonCkeck.setVisibility(View.GONE);
 
         return view;
     }
@@ -108,6 +131,7 @@ public class NeuroFragment extends Fragment {
         Bitmap scaled = getPreview();
         numberAdapter.append(BitmapConverter.createNumber(scaled, currentPattern), scaled, simpleCanvas.getPath());
         updateCurrentPattern();
+        buttonCkeck.setVisibility(View.VISIBLE);
         Toast.makeText(this.getContext(), "Шаблонов: " + currentPattern, Toast.LENGTH_SHORT).show();
     }
 
@@ -116,6 +140,7 @@ public class NeuroFragment extends Fragment {
         currentPattern = -1;
         updateCurrentPattern();
         numberAdapter.clear();
+        buttonCkeck.setVisibility(View.GONE);
     }
 
     @OnClick(R.id.buttonCheck)
@@ -152,9 +177,10 @@ public class NeuroFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        Assert.assertNotNull(disposable);
-        progressBar.setVisibility(View.GONE);
-        disposable.dispose();
+        if (disposable != null) {
+            progressBar.setVisibility(View.GONE);
+            disposable.dispose();
+        }
     }
 
     private void updateCurrentPattern() {

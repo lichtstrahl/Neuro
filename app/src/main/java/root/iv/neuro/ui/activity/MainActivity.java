@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.mainFrame, CoordinatorFragment.getInstance())
+                .replace(R.id.mainFrame, NeuroFragment.getInstance())
                 .commit();
     }
 }
