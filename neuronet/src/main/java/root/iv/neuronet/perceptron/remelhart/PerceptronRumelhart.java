@@ -1,11 +1,14 @@
 package root.iv.neuronet.perceptron.remelhart;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import root.iv.neuronet.Logger;
 import root.iv.neuronet.perceptron.ArrayUtils;
 import root.iv.neuronet.perceptron.cmd.FillRandomCommand;
@@ -66,7 +69,7 @@ public class PerceptronRumelhart {
      * @return Количество живых нейронов в A-слое
      * идеальный образец имеет 1.0 на выходе только у одного элемента
      */
-    public int train(double error, Logger logger) {
+    public int train(double error, Logger logger, Report report) {
 
         List<Number> shufleOriginal = new LinkedList<>(originals);
         int countTrue = 0;
@@ -89,10 +92,12 @@ public class PerceptronRumelhart {
                 // Logging
                 logger.log(String.format(Locale.ENGLISH, "Learning: %d%n", shufleOriginal.get(n).getValue()));
                 logger.log(String.format(Locale.ENGLISH, "Step error: %5.2f%n", stepError));
+                report.stepError(stepError);
                 logger.log(l.toString());
                 logger.log("CountTrue: " + countTrue);
                 logger.log(" ");
             }
+            report.addEpoch();
             logger.log("Count constant: " + layerA.countConstant());
             StringBuilder l = new StringBuilder();
             layerA.logCopy(l);
@@ -102,10 +107,43 @@ public class PerceptronRumelhart {
         }
 
         logger.log(" ");
+        report.setCountLive(layerA.countNotNull());
         return layerA.countNotNull();
     }
 
-    public void setOriginalNumbers(List<Number> numbers) {
+    public Report train(double error, Logger logger) {
+        Report report = new Report();
+        train(error, logger, report);
+
+        report.setCountLayer(3);
+        report.setCountTotal(layerS.getValues().length + layerA.size() + layerR.size());
+
+        return report;
+    }
+
+
+
+    public PerceptronRumelhart setOriginalNumbers(List<Number> numbers) {
         this.originals = numbers;
+        return this;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static public class Report {
+        private int countLive;
+        private int countTotal;
+        private int countLayer;
+        private int countEpoch;
+        private List<Double> stepErrors = new LinkedList<>();
+
+        public void addEpoch() {
+            countEpoch++;
+        }
+        public void stepError(double error) {
+            stepErrors.add(error);
+        }
     }
 }

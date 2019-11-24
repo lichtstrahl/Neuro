@@ -27,6 +27,8 @@ android {
 dependencies {
     def butterKnifeVersion = '10.2.0'
     def googleMaterialDesign = '1.0.0'
+    def timberVersion = '4.7.1'
+    def lombokVersion = '1.18.10'
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.0.0'
@@ -63,4 +65,11 @@ dependencies {
 
     // Google Material Design
     implementation "com.google.android.material:material:$googleMaterialDesign"
+
+    // Timber
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+
+    // Lombok
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 }

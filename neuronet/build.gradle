@@ -1,7 +1,12 @@
 apply plugin: 'java-library'
 
 dependencies {
+    def lombokVersion = '1.18.10'
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    // Lombok
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 }
 
 sourceCompatibility = "7"

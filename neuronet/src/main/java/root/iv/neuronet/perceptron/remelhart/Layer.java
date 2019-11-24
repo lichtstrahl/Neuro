@@ -37,7 +37,7 @@ public class Layer {
     }
 
     /**
-     * Используется ТОЛЬКО на R-слое
+     * Used only for R-layer
      * @param index
      * @return
      */

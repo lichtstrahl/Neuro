@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.snackbar.Snackbar;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -43,6 +44,7 @@ import root.iv.neuro.util.BitmapConverter;
 import root.iv.neuronet.perceptron.cmd.FillConstantCommand;
 import root.iv.neuronet.perceptron.remelhart.PerceptronRumelhart;
 import root.iv.neuronet.perceptron.rosenblat.Configuration;
+import timber.log.Timber;
 
 
 public class NeuroFragment extends Fragment {
@@ -159,9 +161,10 @@ public class NeuroFragment extends Fragment {
         disposable.add(
                 Completable.fromCallable(() -> {
                     perceptron = new PerceptronRumelhart(NEURON_COUNT, NEURON_COUNT, numberAdapter.getItemCount());
-                    perceptron.setOriginalNumbers(numberAdapter.getNumbers());
-                    StringBuilder log = new StringBuilder();
-                    countLive = perceptron.train(1.0, App::logI);
+                    PerceptronRumelhart.Report report = perceptron
+                            .setOriginalNumbers(numberAdapter.getNumbers())
+                            .train(1.0, Timber::i);
+                    Snackbar.make(this.appBarShadow, "Отчет получен", Snackbar.LENGTH_SHORT).show();
                     return countLive;
                 })
                 .subscribeOn(Schedulers.io())
