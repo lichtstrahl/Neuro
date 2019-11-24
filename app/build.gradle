@@ -23,16 +23,16 @@ android {
     }
 }
 
-ext {
-    butterKnifeVersion = '10.1.0'
-}
 
 dependencies {
+    def butterKnifeVersion = '10.2.0'
+    def googleMaterialDesign = '1.0.0'
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
 
     // ButterKnife
     implementation "com.jakewharton:butterknife:$butterKnifeVersion"
@@ -60,4 +60,7 @@ dependencies {
 
     // Java-Ann-Mlp
     implementation "com.github.chen0040:java-ann-mlp:1.0.6"
+
+    // Google Material Design
+    implementation "com.google.android.material:material:$googleMaterialDesign"
 }
