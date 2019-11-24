@@ -7,5 +7,6 @@
     <dimen name="size_card">100dp</dimen>
     <dimen name="height_list">92dp</dimen>
     <dimen name="height_shadow">30dp</dimen>
+    <dimen name="appbar_height">300dp</dimen>
     <item name="shadow" type="dimen" format="float">0.5</item>
 </resources>

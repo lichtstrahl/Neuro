@@ -3,6 +3,7 @@ package root.iv.neuro.ui.activity;
 import androidx.appcompat.app.AppCompatActivity;
 import butterknife.ButterKnife;
 import root.iv.neuro.R;
+import root.iv.neuro.ui.fragment.CoordinatorFragment;
 import root.iv.neuro.ui.fragment.NeuroFragment;
 
 import android.os.Bundle;
@@ -17,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.mainFrame, NeuroFragment.getInstance())
+                .replace(R.id.mainFrame, CoordinatorFragment.getInstance())
                 .commit();
     }
 }

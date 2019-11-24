@@ -5,4 +5,5 @@
     <string name="train">Train</string>
     <string name="check">check</string>
     <string name="reset">reset</string>
+    <string name="hello_world">Hello, World!</string>
 </resources>

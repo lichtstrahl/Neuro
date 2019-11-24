@@ -8,4 +8,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="TitleStyleExpanded" parent="TextAppearance.MaterialComponents.Button">
+        <item name="android:textSize">30sp</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="TitleStyleCollapsed" parent="TitleStyleExpanded">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
 </resources>
