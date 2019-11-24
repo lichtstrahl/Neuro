@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import root.iv.neuro.R;
@@ -30,7 +32,7 @@ public class CoordinatorFragment extends Fragment {
     }
 
     @OnClick(R.id.fab)
-    public void click() {
-        Toast.makeText(this.getContext(), "CLICK", Toast.LENGTH_SHORT).show();
+    public void click(View view) {
+        Snackbar.make(view, "Hello!", Snackbar.LENGTH_SHORT).show();
     }
 }
